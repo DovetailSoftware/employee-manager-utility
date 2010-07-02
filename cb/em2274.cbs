@@ -1,0 +1,374 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        : Employee Manager Form 2270
+'
+' Series         : First Choice Administration Series(tm)
+'
+' Name           : fc2270.cbs
+'
+' Description    : Allows for workgroup record bizcal information to be updated
+'
+' Author         : First Choice Software, Inc.
+'                  4412 Spicewood Springs Road
+'                  Suite 701
+'                  Austin, TX  78759
+'                  (512) 418-2905
+'                  EMAIL: support@fchoice.com
+'                  www.fchoice.com
+'
+' Platforms      : This version supports Clarify 4.0 and later
+'
+' Copyright (C)  1999 First Choice Software, Inc.
+' All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'   Functional Declarations
+'
+' Copyright (C) 1999. First Choice Software, Inc. All Rights Reserved
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Option Explicit
+' Global Variables
+'
+Global locale        As String   'global variables
+Global fc_date_str   As String   'holds the latest date process by the date dialog box
+
+' Form ID's
+'
+Const FRM_WRKGRP_MAIN%    = 2265
+
+Const MSG_FIRST_EMP_MAN   = CBFirstMessage + 3000
+Const MSG_ENA_DEFAULTS    = MSG_FIRST_EMP_MAN + 0 'enable "set default" chkboxes
+Const MSG_DISA_DEFAULTS   = MSG_FIRST_EMP_MAN + 1 'disable "set default" chkboxes
+Const MSG_DATA_CHANGED    = MSG_FIRST_EMP_MAN + 2 'cobj_recWrkgrpDef data changed
+Const MSG_DATA_CLEARED    = MSG_FIRST_EMP_MAN + 3 'disable the replace button on main form
+
+Declare Sub chkBizCal_click()
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Declare external functions
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Sub get_strings(start_val As Long, num_strings As Integer, _
+                               locale As String, application As String, ret_strings As List)
+
+Declare Public Function get_sprintf(str_num As Long, locale As String, application As String, _
+                                    Optional arg1 As Variant, Optional arg2 As Variant, _
+                                    Optional arg3 As Variant, Optional arg4 As Variant, _
+                                    Optional arg5 As Variant, Optional arg6 As Variant) As String
+
+Declare Function msg_box(the_text As String, the_caption As String, the_type As Integer) As Integer
+
+Declare Function fc_datebox(dt_format as Integer, ddl_option as Integer, time_option as Integer, _
+                            mon_option as Integer, optional date_string as Variant, _
+                            optional time_string as Variant) As Integer
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Form_Load()
+  Dim ret_strings As New List           'list for control strings
+
+  me.dodefault
+
+  get_strings 13933, 5, locale, "", ret_strings
+  lbl_default.caption              = ret_strings.ItemByIndex(0)
+  chkBizCal.caption                = ret_strings.ItemByIndex(1)
+' grpEffDate.caption               = ret_strings.ItemByIndex(2)
+  lbl_eff_date.caption             = ret_strings.ItemByIndex(2)
+  optEffToday.caption              = ret_strings.ItemByIndex(3)
+  optEffDate.caption               = ret_strings.ItemByIndex(4)
+
+  txtBizCal.enabled = FALSE
+  txtBizCalStartDate.enabled = FALSE
+  grpEffDate.enabled = FALSE
+  
+                    ' If bizcal default is enabled, enable edit fields
+  chkBizCal_click
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Option Button - Biz Cal Effective today
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                    ' this sub is called when an option button is enabled and pressed
+                    ' it will enalble or disable the date entry fields 
+                    ' depending on which button is pressed
+Sub optEffToday_click()
+  Dim t_rec As Record                   'holds workgroup record
+                                        'copy bizcal data to the workgroup record
+  Set t_rec = cobj_recWrkgrpDef.Contents  
+
+  txtBizCalStartDate.enabled = FALSE
+  cmdDateTime.enabled = FALSE
+  optEffDate.value = FALSE
+
+  t_rec.SetField "x_biz_cal_eff_today", 0
+  cobj_recWrkgrpDef.Fill t_rec
+
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Option Button - Biz Cal Effective on specified date
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub optEffDate_click()
+  Dim t_rec As Record                   'holds workgroup record
+                                        'copy bizcal data to the workgroup record
+  Set t_rec = cobj_recWrkgrpDef.Contents  
+
+  txtBizCalStartDate.enabled = TRUE
+  cmdDateTime.enabled = TRUE
+  optEffDate.value = TRUE
+
+  t_rec.SetField "x_biz_cal_eff_today", 1
+  cobj_recWrkgrpDef.Fill t_rec
+
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' CheckBox - Biz Eff Date
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkEffDate_click()
+  Dim t_rec As Record                   'holds workgroup record
+                                        'copy bizcal data to the workgroup record
+  Set t_rec = cobj_recWrkgrpDef.Contents  
+
+  If chkEffDate.value = TRUE Then
+    optEffToday.enabled = TRUE
+    optEffDate.enabled = TRUE
+    grpEffDate.enabled = TRUE
+    If t_rec.GetField("x_biz_cal_eff_today") = 0 Then
+      optEffToday_click
+    Else
+      optEffDate_click
+    End If
+  Else
+    optEffToday.enabled = FALSE
+    optEffDate.enabled = FALSE
+    txtBizCalStartDate.enabled = FALSE
+    cmdDateTime.enabled = FALSE
+    grpEffDate.enabled = FALSE
+    'notify main form that data has changed
+    Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' CheckBox - Biz Cal
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkBizCal_click()
+  If chkBizCal.value = TRUE Then
+    txtBizCal.enabled = TRUE
+    cmdCheckBizCal.enabled = TRUE
+    cmdBizCalInfo.enabled = TRUE
+    chkEffDate.enabled = TRUE
+  Else
+    txtBizCal.enabled = FALSE
+    cmdCheckBizCal.enabled = FALSE
+    cmdBizCalInfo.enabled = FALSE
+    chkEffDate.value = FALSE
+    chkEffDate.enabled = FALSE
+  End If
+  chkEffDate_click
+'  Me.Refresh
+
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' BizCal checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdCheckBizCal_click()
+  Dim bc_title As String                'biz_cal title
+  Dim retVal   As Integer               'function return value
+  Dim t_rec    As New Record            'temp record
+                   
+                    ' set up a filter record
+  t_rec.RecordType = "wk_work_hr"
+                    ' get the data from user screen
+                    ' into local record
+                    ' append % to use partial strings
+                    
+  Set t_rec = cobj_bizcal.contents
+  bc_title = t_rec.GetField("title")
+
+                    ' now clear out the record to use
+                    ' as a filter for the search
+  Set t_rec = New Record
+  t_rec.RecordType = "wk_work_hr"
+  If Len(bc_title) > 0 Then
+    t_rec.SetField "title", bc_title + "%"
+  End If
+                    ' call showselect method. if no form posted, clear contextual
+                    ' object so it will show up us not validated when we go to save the data
+  retVal = App.ShowSelect (cbSelBusinessCalendar, cmdCheckBizCal, t_rec)
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' BizCal Use_Select
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'this dummy event occurs upon the the return from a call to app.showselect
+Sub cmdCheckBizCal_UseSelect(bizcal_List as List, bizcal_Count as Integer)
+  Dim retVal   As Integer               'function return value    
+  Dim t_rec    As New Record            'temp record
+
+                    ' if no valid records, warn
+  If bizcal_Count = 0 Then
+'   app.MsgBox "No valid Business Calendar Selected. Please Enter a valid Business Calendar or press the check mark to select."
+    retVal = msg_box(get_sprintf(13987, locale, ""),get_sprintf(13981, locale, ""),0)
+
+                    ' if no matches found, clear out the bizcal cobj
+    t_rec.RecordType = "wk_work_hr"                    
+    t_rec.SetField "title", ""
+    t_rec.SetField "objid", NULL   'the objid of the calendar in wk_work_hr
+    cobj_bizcal.Fill t_rec
+
+                    ' put the cursor on the bizcal field  
+    txtBizCal.SetFocus
+
+                    ' else record returned, copy to objects
+  Else
+    Set t_rec = bizcal_List.ItemByIndex(0)
+    cobj_bizcal.Fill t_rec
+    cobj_bizcal.DataChanged = FALSE
+  End If
+
+                    ' copy bizcal data to the
+                    ' workgroup record
+  Set t_rec = cobj_recWrkgrpDef.Contents  
+  t_rec.SetField "x_biz_cal_title", txtBizCal.text
+  cobj_recWrkgrpDef.Fill t_rec
+
+                    ' notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+  
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' bizcal info button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdBizCalInfo_click()
+  Dim t_rec    As New Record            'temp record
+
+  Set t_rec = cobj_bizcal.Contents
+'  App.ShowEmployee t_rec, cbShowEmployeeReadOnly
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Calendar button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdDateTime_Click()
+  Dim curr_time     As Date             'date variable
+  Dim date_dlg      As New CommonDialog 'date dialog area
+  Dim date_string   As String           'initial date value
+  Dim ddl_option    As Integer          'ddl option: 0-txt_box, 1=ddl_box
+  Dim dt_format     As Integer          'date format: 1-MM/DD/YY, 2=DD/MM/YY, 3=YY/MM/DD
+  Dim mon_option    As Integer          'mon_option: 0=num, 1=month name, 2=mon abbr.
+  Dim t_list        As List             'temp record list
+  Dim t_rec         As New Record       'temp records
+  Dim t_ret         As New BulkRetrieve 'bulkretrieve area
+  Dim t_str         As String           'temp string
+  Dim time_option   As Integer          'time option: 1=12 hr, 2=24 hr
+  Dim time_string   As String           'initial time value
+  Dim ret_val       As Integer          'function return value
+
+                    ' Unselect anything selected in the
+                    ' grid. Clear the contextual object
+                    ' which feeds data to the tabs.
+                    ' Send msgs to the tabs to
+                    ' disable and clear default
+                    ' settings as needed.
+
+  curr_time = App.CurrentDate    
+
+                    ' Retrieve the date/time options specified in
+                    ' the fc_locale table for the current locale.
+  t_ret.SimpleQuery 0, "fc_locale"
+  t_ret.AppendFilter 0, "locale_name", cbEqual, locale
+  t_ret.RetrieveRecords
+  Set t_list = t_ret.GetRecordList(0)
+  If t_list.count > 0 Then
+    Set t_rec = t_list.ItemByIndex (0)
+
+    Select Case Mid(t_rec.GetField("d_fmt"),1,2)
+      Case "%M"
+        dt_format = 1
+      Case "%D"
+        dt_format = 2
+      Case "%Y"
+        dt_format = 3
+      Case Else
+        dt_format = 1
+    End Select
+    ddl_option = 1
+    mon_option = 0
+    If InStr(t_rec.GetField("d_fmt"),"%B") Then mon_option = 1
+    If InStr(t_rec.GetField("d_fmt"),"%b") Then mon_option = 2
+    time_option = 1
+    
+    If Len(txtBizCalStartDate.Text) > 0 Then
+      date_string = Format(txtBizCalStartDate.Text,"mmddyyyy")
+      time_string = Format(txtBizCalStartDate.Text,"hhnnss")
+    End If
+    
+    ret_val = fc_datebox(dt_format,ddl_option,time_option,mon_option,date_string,time_string)
+    If ret_val = 0 Then
+      txtBizCalStartDate.text = fc_date_str
+    End If
+  Else
+    date_dlg.DateTime = CStr(txtBizCalStartDate.Text)
+    date_dlg.Action = cbCDDateTime
+    txtBizCalStartDate.text = CDate(date_dlg.DateTime)
+  End If
+
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Message Handler
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Message(ByVal msgNum as Long, ByVal msgStr as String)
+  Select Case msgNum
+    Case MSG_ENA_DEFAULTS
+      chkBizCal.enabled = TRUE
+'      Me.Refresh
+      chkBizCal_click
+                    ' since we only enable defaults when initializing data,
+                    ' disable the 'Replace' button (it is used as a data dirty indicator)
+      Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CLEARED, ""
+    Case MSG_DISA_DEFAULTS
+      If chkBizCal.value = TRUE Then
+        chkBizCal.value = FALSE
+      End If
+      chkBizCal_click
+      chkBizCal.enabled = FALSE
+                    ' disable the replace button
+      Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CLEARED, ""
+    Case Else
+      Me.DoDefault
+  End Select
+End Sub

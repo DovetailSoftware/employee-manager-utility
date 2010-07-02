@@ -1,0 +1,97 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+'                                                                          
+' Product        :  Employee Manager
+'                                                                           
+' Name           :  em_global_fd.cbs                                           
+'                                                                           
+' Description    :  SQLDB Routines 
+'                                                                           
+' Author          : First Choice Software, Inc.                             
+'                   8900 Business Park Drive
+'                   Austin, TX 78759                                       
+'                   (512) 418-2905                                          
+'                                                                           
+' Platforms       : This version supports Clarify 5.0 and later             
+'                                                                           
+' Copyright (C)  1999 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Option Explicit
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Update Employee
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Public Sub update_employee(t_list As List)
+  Dim my_db As SQLDB
+  Dim e_rec As Record
+  Dim local_emp_rec As Record
+
+  If t_list.Count <> 2 Then
+    Exit Sub
+  End If
+
+  Set e_rec = t_list.ItemByIndex(0)
+  Set local_emp_rec = t_list.ItemByIndex(1)
+
+  If local_emp_rec Is Not Nothing Then
+    Set my_db = New SQLDB
+    my_db.Execute "update table_employee set normal_biz_high = '" & local_emp_rec.GetField("normal_biz_high") & _
+       "', normal_biz_mid = '" & local_emp_rec.GetField("normal_biz_mid") & "', normal_biz_low = '" & _
+       local_emp_rec.GetField("normal_biz_low") & "', after_biz_high = '" & local_emp_rec.GetField("after_biz_high") & _
+       "', after_biz_mid = '" & local_emp_rec.GetField("after_biz_mid") & "', after_biz_low = '" & _
+       local_emp_rec.GetField("after_biz_low") & "' where objid = " & e_rec.GetField("objid")
+'   debug.print "executed"
+  End If  
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Update the work_group for a list of employees
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub UpdateEmployeesWorkGroup(work_group as String,emp_objid_list as List)
+                                       'Update the work_group value for a list of employees
+  Dim my_db As SQLDB        'SQL Structure
+  Dim counter as Integer    'Loop counter
+  Dim TheSQL as String      'SQL String
+  Dim bFirstItem as Boolean 'Indicates if this is the first item in the list
+  Dim emp_objid as Long     'Employee Objid
+
+    Set my_db = New SQLDB                              
+    bFirstItem = True
+    TheSQL =  "update table_employee set work_group = '" & work_group & "'" & "where objid in ("
+
+    For counter = 0 to emp_objid_list.Count - 1
+      emp_objid = emp_objid_list.ItemByIndex(counter)
+      If bFirstItem Then
+        TheSQL = TheSQL & cstr(emp_objid) 
+      Else
+        TheSQL = TheSQL & "," & cstr(emp_objid) 
+      End If
+      bFirstItem = False
+    Next counter
+
+    TheSQL = TheSQL & ")"
+
+    my_db.Execute TheSQL
+End Sub
+
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Remove a user from all queues
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub RemoveUserFromAllQueues(user_objid as Long)
+                                       'Remove a user from all queues
+  Dim my_db As SQLDB        'SQL Structure
+  Dim counter as Integer    'Loop counter
+  Dim TheSQL as String      'SQL String
+
+  Set my_db = New SQLDB                              
+  TheSQL =  "delete from mtm_queue4_user23 where user_assigned2queue = " + cstr(user_objid)
+  my_db.Execute TheSQL
+End Sub

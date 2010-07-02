@@ -1,0 +1,132 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        :  Employee Manager(tm)
+'
+' Series         :  First Choice Administration Series(tm)
+'
+' Name           :  Employee More Information form (707)
+'
+' Description    :  Handle notification preferences
+'
+' Author          : First Choice Software, Inc.
+'                   4412 Spicewood Springs Road
+'                   Suite 701
+'                   Austin, TX  78759
+'                   (512) 418-2905
+'                   EMAIL: support@fchoice.com
+'                   www.fchoice.com
+'
+' Platforms       : This version supports Clarify 5.0 and later
+'
+' Copyright (C)  1998 First Choice Software, Inc.
+' All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Functional Declarations
+'
+' Copyright (C) 1998. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+OPTION EXPLICIT
+
+Declare Public Function get_sprintf(str_num As Long, locale As String, _
+                        application As String, Optional arg1 As Variant, _
+                        Optional arg2 As Variant, Optional arg3 As Variant, _
+                        Optional arg4 As Variant, Optional arg5 As Variant, _
+                        Optional arg6 As Variant) As String
+
+Declare Function msg_box(the_text As String, the_caption As String, _
+                 the_type As Integer) As Integer
+
+Declare Public Sub get_strings(start_val As Long, num_strings As Integer, _
+                   locale As String, application As String, ret_strings As List)
+
+Declare Public Sub get_restrictions
+
+Global user_rec  As Record              ' User record
+Global locale    As String              ' Locale for messages
+
+Dim current_ddl As String
+Global move_emp_rec As Record
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load Method
+'
+' Copyright (C) 1998. First Choice Software. All Right Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub form_load()
+                                        ' Do default action
+  Me.DoDefault
+End Sub
+
+Public Sub change_ddls()
+  Dim ddl_sel As String
+  Dim e_rec   As Record  
+    
+  Set e_rec = Cobj_EMPLOYEE.Contents
+  ddl_sel = BUS_HRS.Selected
+  Select Case ddl_sel
+    Case "Normal Business Hours"
+      cobj_HI_MEDIUM.Fill  e_rec.GetField("normal_biz_high")
+      cobj_MID_MEDIUM.Fill e_rec.GetField("normal_biz_mid")
+      cobj_LOW_MEDIUM.Fill e_rec.GetField("normal_biz_low")      
+    Case Else
+      cobj_HI_MEDIUM.Fill  e_rec.GetField("after_biz_high")
+      cobj_MID_MEDIUM.Fill e_rec.GetField("after_biz_mid")
+      cobj_LOW_MEDIUM.Fill e_rec.GetField("after_biz_low")      
+  End Select
+End Sub
+
+Public Sub BUS_HRS_Click()
+  Dim e_rec As Record
+
+  Me.DoDefault  
+  Set e_rec = Cobj_EMPLOYEE.Contents
+  Select Case current_ddl
+    Case "Normal Business Hours"
+      e_rec.SetField "normal_biz_high", cobj_HI_MEDIUM.Contents
+      e_rec.SetField "normal_biz_mid", cobj_MID_MEDIUM.Contents 
+      e_rec.SetField "normal_biz_low", cobj_LOW_MEDIUM.Contents
+    Case Else
+      e_rec.SetField "after_biz_high", cobj_HI_MEDIUM.Contents
+      e_rec.SetField "after_biz_mid", cobj_MID_MEDIUM.Contents 
+      e_rec.SetField "after_biz_low", cobj_LOW_MEDIUM.Contents
+  End Select
+  Cobj_EMPLOYEE.Fill e_rec
+  
+  change_ddls
+  current_ddl = Cobj_BIZ_HRS.Contents
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Function Description:  New done button
+'
+' Copyright (C) 1998. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub NOTIF_DONE_click()
+                                        ' Put the notifications in the CObj
+  Call BUS_HRS_Click                    ' click the ddl to update cobj  (7-28-00)
+  Set move_emp_rec = Cobj_EMPLOYEE.Contents
+  Me.NotifyParent cbFirstMessage + 1, ""
+
+                                        ' Do the default Done processing          
+  Me.DoDefault
+End Sub
+
+Public Sub Form_Activate()
+  Dim e_rec As Record
+  
+  If move_emp_rec Is Not Nothing Then
+     Set e_rec = Cobj_EMPLOYEE.Contents
+     e_rec.SetField "normal_biz_high", move_emp_rec.GetField("normal_biz_high")
+     e_rec.SetField "normal_biz_mid", move_emp_rec.GetField("normal_biz_mid")
+     e_rec.SetField "normal_biz_low", move_emp_rec.GetField("normal_biz_low")
+     e_rec.SetField "after_biz_high", move_emp_rec.GetField("after_biz_high")
+     e_rec.SetField "after_biz_mid", move_emp_rec.GetField("after_biz_mid")
+     e_rec.SetField "after_biz_low", move_emp_rec.GetField("after_biz_low")
+     Cobj_EMPLOYEE.Fill e_rec
+     Set move_emp_rec = Nothing
+  End If
+  current_ddl = Cobj_BIZ_HRS.Contents
+  change_ddls
+End Sub

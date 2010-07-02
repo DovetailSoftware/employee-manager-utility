@@ -1,0 +1,221 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        : Employee Manager Form 2273
+'
+' Series         : First Choice Administration Series(tm)
+'
+' Name           : fc2273.cbs
+'
+' Description    : Allows for workgroup record to be added
+'
+' Author         : First Choice Software, Inc.
+'                  4412 Spicewood Springs Road
+'                  Suite 701
+'                  Austin, TX  78759
+'                  (512) 418-2905
+'                  EMAIL: support@fchoice.com
+'                  www.fchoice.com
+'
+' Platforms      : This version supports Clarify 4.0 and later
+'
+' Copyright (C)  1999 First Choice Software, Inc.
+' All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'   Functional Declarations
+'
+' Copyright (C) 1999. First Choice Software, Inc. All Rights Reserved
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Option Explicit
+' Global Variables
+'
+Global locale As String   'global variables
+Const FRM_WRKGRP_MAIN%    = 2265
+Const MSG_FIRST_EMP_MAN   = CBFirstMessage + 3000
+Const MSG_DATA_REFRESH    = MSG_FIRST_EMP_MAN + 4       'click the list button and refresh the clb
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Declare functions
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Sub get_strings(start_val As Long, _
+                               num_strings As Integer, _
+                               locale As String, _
+                               application As String, _
+                               ret_strings As List)
+
+Declare Public Function get_sprintf(str_num As Long, locale As String, application As String, _
+                                    Optional arg1 As Variant, Optional arg2 As Variant, _
+                                    Optional arg3 As Variant, Optional arg4 As Variant, _
+                                    Optional arg5 As Variant, Optional arg6 As Variant) As String
+
+Declare Function msg_box(the_text As String, the_caption As String, the_type As Integer) As Integer
+
+Declare Sub add_new_workgroup()
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Fill workgroup list box
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub fill_workgroup_listbox()
+  Dim i             As Integer          'loop integer
+  Dim t_list        As List             'temp record list
+  Dim t_rec         As Record           'temp records
+  Dim t_ret         As New BulkRetrieve 'bulkretrieve area
+  Dim w_list        As List             'temp workgroup list
+  Dim x_list        As New List         'workgroup list
+
+  x_list.ItemType = "string"
+
+  t_ret.SimpleQuery        0, "hgbst_lst"
+  t_ret.AppendFilter       0, "title", cbEqual, "WORKGROUP"
+  t_ret.TraverseFromParent 1, "hgbst_lst2hgbst_show", 0
+  t_ret.TraverseFromParent 2, "hgbst_show2hgbst_elm", 1
+  t_ret.AppendFilter       2, "state", cbNotEqual, "Inactive"
+  t_ret.SimpleQuery        3, "workgroup"
+  t_ret.RetrieveRecords
+
+  Set t_list = t_ret.GetRecordList(2)
+  Set w_list = t_ret.GetRecordList(3)
+
+  For i = 0 to t_list.Count - 1
+    Set t_rec = t_list.ItemByIndex (i)
+    If w_list.FindFirstIndex(t_rec.GetField("title"), "work_group") < 0 Then
+      x_list.AppendItem t_rec.GetField("title")
+    End If    
+  Next i
+
+  If x_list.count >= 0 Then
+    x_list.Sort
+    cobj_LOR_workgroup.fill x_list               'fill lb with list of records
+  End If
+  lb_workgroup.Unselect
+  cmdAdd.Enabled = FALSE
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Form_Load()
+  Dim ret_strings As New List           'list for control strings
+
+  me.dodefault
+
+  get_strings 13952, 3, locale, "", ret_strings
+  lbl_avail.caption             = ret_strings.ItemByIndex(0)
+  cmdAdd.caption                = ret_strings.ItemByIndex(1)
+  ctl_close.caption             = ret_strings.ItemByIndex(2)
+
+  fill_workgroup_listbox
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Close button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub close_click()
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_REFRESH, ""
+  Me.Close
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' workgroup Selection
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub lb_workgroup_click()
+  If lb_workgroup.Selected <> "" Then
+    cmdAdd.Enabled = TRUE
+    txt_new.text = ""
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' txt_new modification
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub txt_new_KeyPress(key_ascii As Integer)              'modified on 2-18-2000
+  If Len(txt_new.text) > 0 Then
+    lb_workgroup.Unselect
+    cmdAdd.Enabled = TRUE
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Add button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdAdd_click()
+  Dim t_rec         As New Record       'temp records
+  Dim t_save        As New bulkSave     'bulksave area
+
+  If Trim(txt_new.text) <> "" Then
+    add_new_workgroup
+  Else
+    If lb_workgroup.Selected <> "" Then
+      t_rec.RecordType = "workgroup"
+      t_rec.SetField "work_group", Trim(lb_workgroup.Selected)
+      t_save.InsertRecord t_rec
+      t_save.Save
+    End If
+  End If
+
+  fill_workgroup_listbox
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Add workgroup from text box
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub add_new_workgroup()
+  Dim elm_rec       As New Record       'temp hgbst elm record
+  Dim retVal        As Integer          'function return value
+  Dim sho_rec       As Record           'temp hgbst show record
+  Dim t_list        As List             'temp record list
+  Dim t_ret         As New BulkRetrieve 'bulkretrieve area
+  Dim t_save        As New bulkSave     'bulksave area
+  Dim w_rec         As New Record       'temp workgroup record
+
+  elm_rec.RecordType = "hgbst_elm"
+
+  t_ret.SimpleQuery        0, "hgbst_lst"
+  t_ret.AppendFilter       0, "title", cbEqual, "WORKGROUP"
+  t_ret.TraverseFromParent 1, "hgbst_lst2hgbst_show", 0
+  t_ret.TraverseFromParent 2, "hgbst_show2hgbst_elm", 1
+  t_ret.TraverseFromParent 3, "hgbst_show2hgbst_elm", 1
+  t_ret.AppendFilter       3, "title", cbEqual, Trim(txt_new.text)
+  t_ret.RetrieveRecords
+
+  Set t_list = t_ret.GetRecordList(3)
+  If t_list.Count > 0 Then
+'    msgbox txt_new.text & " already exists in WORKGROUP list."
+    retVal = msg_box(txt_new.text & " " & get_sprintf(13993, locale, ""),get_sprintf(13990, locale, ""),0)
+  Else
+    Set t_list = t_ret.GetRecordList(1)
+    Set sho_rec = t_list.ItemByIndex (0)
+    Set t_list = t_ret.GetRecordList(2)
+
+    elm_rec.SetField "title", Trim(txt_new.text)        'set title of new elm to text field
+    elm_rec.SetField "rank", t_list.Count               'set rank of new elm to next number
+    elm_rec.SetField "state", "Active"                  'set state of new elm to 'active'
+    t_save.UpdateRecord sho_rec
+    t_save.InsertRecord elm_rec
+    t_save.RelateRecords sho_rec, elm_rec, "hgbst_show2hgbst_elm"
+
+    w_rec.RecordType = "workgroup"
+    w_rec.SetField "work_group", Trim(txt_new.text)
+    t_save.InsertRecord w_rec
+    t_save.Save
+  End If
+  
+  cmdAdd.Enabled = FALSE
+  txt_new.text = ""
+End Sub

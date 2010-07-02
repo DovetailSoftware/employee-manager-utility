@@ -1,0 +1,850 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        :  Date Dialog Form Code
+'
+' Name           :  i18n1956.cbs
+'
+' Description    :  Provides code for the Date Dialog GUI
+'
+' Author          : First Choice Software, Inc.
+'                   4412 Spicewood Springs Road, Suite 701
+'                   Austin, TX 78759
+'                   (512) 418-2905
+'
+' Platforms       : This version supports Clarify 6.0 and later
+'
+' Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+OPTION EXPLICIT
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'get_strings function
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Sub get_strings(start_val   As Long,   num_strings As Integer, _
+                               locale      As String, application As String, _
+                               ret_strings As List)
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'get_sprintf function
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Function get_sprintf(str_num As Long, locale As String, application As String, _
+                                    Optional arg1 As Variant, Optional arg2 As Variant, _
+                                    Optional arg3 As Variant, Optional arg4 As Variant, _
+                                    Optional arg5 As Variant, Optional arg6 As Variant) _
+                                    As String
+
+Global locale      As String            'global variables
+Global fc_abday    As String
+Global fc_date_str As String
+
+Dim am_str      As String               'holds am string
+Dim am_pm_str   As String               'holds am-pm label string
+Dim box_option  As Integer              'indicates box sequence
+Dim date_string As String               'holds date label string
+Dim dd_max      As Integer              'indicates number of days for specified month
+Dim dd_num      As Integer              'holds last specified day
+Dim dd_str      As String               'holds day label string
+Dim ddl_option  As Integer              'indicates ddl usage
+Dim hr_num      As Integer              'holds last specified hour
+Dim hr_str      As String               'holds hour label string
+Dim leap_year   As Boolean              'indicates if specified year is a leap year
+Dim mm_num      As Integer              'holds last specified month
+Dim mm_str      As String               'holds month label string
+Dim mn_num      As Integer              'holds last specified minute
+Dim mn_str      As String               'holds minute label string
+Dim mon_option  As Integer              'indicates month name, abbr., or number usage
+Dim mon_ab_str(13) As String            'holds month abbr strings
+Dim mon_str(13) As String               'holds month name strings
+Dim pm_str      As String               'holds pm string
+Dim sc_num      As Integer              'holds last specified second
+Dim sc_str      As String               'holds second label string
+Dim time_option As Integer              'indicates time usage
+Dim time_string As String               'holds time label string
+Dim yy_num      As Integer              'holds last specified year
+Dim yy_str      As String               'holds year label string
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'test specified year for leap year status
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub test_leap_year(yy_num As Integer)
+  leap_year = False
+  If (yy_num mod 4) = 0 and (yy_num mod 100) <> 0 Then
+    leap_year = True
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'Load form and set captions and labels based on string file
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Form_Load()
+  Dim ind_x       As Integer            'loop integer
+  Dim loc_rec     As Record             'record for fc_locale in use
+  Dim ret_strings As New List           'string list
+  Dim t_int       As Integer            'temp integer
+  Dim t_list      As List               'List returned from DB query
+  Dim t_ret       As New BulkRetrieve   'Structure for DB query
+  Dim t_string    As String             'temp string
+
+  me.dodefault
+
+  get_strings 12250, 2, locale, "", ret_strings
+  btn_done.caption       = ret_strings.ItemByIndex(0) 'set form text
+  btn_cancel.caption     = ret_strings.ItemByIndex(1)
+  get_strings 12280, 15, locale, "", ret_strings
+  Me.caption             = ret_strings.ItemByIndex(0)
+
+  lbl_date.caption       = ret_strings.ItemByIndex(1) 'set date form text
+  mm_str                 = ret_strings.ItemByIndex(2)
+  dd_str                 = ret_strings.ItemByIndex(3)
+  yy_str                 = ret_strings.ItemByIndex(4)
+  sep_1.caption          = ret_strings.ItemByIndex(5)
+  sep_2.caption          = ret_strings.ItemByIndex(6)
+
+  lbl_time.caption       = ret_strings.ItemByIndex(7) 'set time form text
+  hr_str                 = ret_strings.ItemByIndex(8)
+  mn_str                 = ret_strings.ItemByIndex(9)
+  sc_str                 = ret_strings.ItemByIndex(10)
+  sep_3.caption          = ret_strings.ItemByIndex(11)
+  sep_4.caption          = ret_strings.ItemByIndex(12)
+
+  t_ret.SimpleQuery  0, "fc_locale"                   'load locale am/pm string
+  t_ret.AppendFilter 0, "locale_name", cbEqual, locale
+  t_ret.RetrieveRecords
+  Set t_list = t_ret.GetRecordList(0)
+  If t_list.Count > 0 Then
+    Set loc_rec = t_list.ItemByIndex(0)
+    t_string = loc_rec.GetField("am_pm")
+    t_int = InStr(t_string,"|")
+    am_str = Mid(t_string,1,t_int-1)                  'build am,pm from fc_locale
+    pm_str = Mid(t_string,t_int+1)
+
+    ind_x = 1
+    t_string = loc_rec.GetField("mon")
+    While InStr(t_string,"|") > 0
+      t_int = InStr(t_string,"|")
+      mon_str(ind_x) = Mid(t_string,1,t_int-1)        'build month names from fc_locale
+      t_string = Mid(t_string,t_int+1)
+      ind_x = ind_x + 1
+      If ind_x > 12 Then
+        t_string = ""
+      End If
+      If ind_x = 12 Then
+        mon_str(ind_x) = t_string
+      End If
+    Wend
+
+    ind_x = 1
+    t_string = loc_rec.GetField("abmon")
+    While InStr(t_string,"|") > 0
+      t_int = InStr(t_string,"|")
+      mon_ab_str(ind_x) = Mid(t_string,1,t_int-1)     'build month abbr. names from fc_locale
+      t_string = Mid(t_string,t_int+1)
+      ind_x = ind_x + 1
+      If ind_x > 12 Then
+        t_string = ""
+      End If
+      If ind_x = 12 Then
+        mon_ab_str(ind_x) = t_string
+      End If
+    Wend
+  Else
+    am_str = ret_strings.ItemByIndex(13)              'build am,pm from fc_string
+    pm_str = ret_strings.ItemByIndex(14)
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'Format form based on box option (date sequence), ddl option, and time option
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub mdy_config(format_option as integer)
+  Dim cur_year  As Integer
+  Dim day_list  As New List
+  Dim hr_list   As New List
+  Dim loop1     As Integer
+  Dim mn_list   As New List
+  Dim mon_list  As New List
+  Dim sc_list   As New List
+  Dim year_list As New List
+
+  cur_year = DatePart("yyyy",App.CurrentDate)
+  test_leap_year yy_num
+
+  Select Case mm_num                    'set number of days for specified month
+    Case 1,3,5,7,8,10,12
+      dd_max = 31
+    Case 4,6,9,11
+      dd_max = 30
+    Case 2
+      If leap_year Then
+        dd_max = 29
+      Else
+        dd_max = 28
+      End If
+  End Select
+
+  If dd_num > dd_max Then               'if specified day is too big, set it to last day
+    dd_num = dd_max
+  End If
+
+  If ddl_option = 1 Then                'if drop-down lists are being used...
+    mon_list.ItemType = "String"                      'build month list
+    For loop1 = 1 to 12
+      If mon_option = 0 Then
+        mon_list.AppendItem CStr(loop1)
+      End If
+      If mon_option = 1 Then
+        mon_list.AppendItem mon_str(loop1)
+      End If
+      If mon_option = 2 Then
+        mon_list.AppendItem mon_ab_str(loop1)
+      End If
+    Next loop1
+    year_list.ItemType = "String"
+    day_list.ItemType = "String"                      'build day list
+    For loop1 = 1 to dd_max
+      day_list.AppendItem CStr(loop1)
+    Next loop1
+
+    If time_option = 1 Then             'if 12 hour clock is being used...
+      hr_list.ItemType = "String"                     'build 12 hour list
+      For loop1 = 1 to 12
+        hr_list.AppendItem CStr(loop1)
+      Next loop1
+    End If
+
+    If time_option = 2 Then             'if 24 hour clock is being used...
+      hr_list.ItemType = "String"                     'build 24 hour list
+      For loop1 = 0 to 23
+        hr_list.AppendItem CStr(Format(loop1, "00"))
+      Next loop1
+    End If
+
+    If time_option > 0 Then             'if either time format is being used
+      mn_list.ItemType = "String"                     'build minute list
+      For loop1 = 0 to 59
+        mn_list.AppendItem CStr(Format(loop1, "00"))
+      Next loop1
+    End If
+
+    If time_option > 0 Then             'if either time format is being used
+      sc_list.ItemType = "String"                     'build seconds list
+      For loop1 = 0 to 59
+        sc_list.AppendItem CStr(Format(loop1, "00"))
+      Next loop1
+    End If
+  End If
+
+
+  If time_option > 0 Then               'if either time format is being used
+    If time_option = 1 Then
+      If hr_num > 12 Then                             'set am or pm based on hour
+        hr_num = hr_num - 12
+      Else
+        If hr_num = 0 then
+          hr_num = 12
+        End If
+      End If
+    End If
+
+    lbl_time.Visible = True                           'set time labels and captions
+    lbl_4.Visible = True
+    lbl_4.caption = hr_str
+    lbl_5.Visible = True
+    lbl_5.caption = mn_str
+    lbl_6.Visible = True
+    lbl_6.caption = sc_str
+
+    If ddl_option = 1 Then              'if drop-down lists are being used...
+      ddl_4.Visible = True                            'enable drop-down lists
+      ddl_4.Enabled = True
+      ddl_5.Visible = True
+      ddl_5.Enabled = True
+      ddl_6.Visible = True
+      ddl_6.Enabled = True
+      cobj_ddl_list_4.Fill hr_list                    'initialize drop-down lists
+      cobj_ddl_list_5.Fill mn_list
+      cobj_ddl_list_6.Fill sc_list
+      ddl_4.SetSelected CStr(hr_num)
+      If time_option = 2 Then
+        ddl_4.SetSelected CStr(Format(hr_num, "00"))
+      End If
+      ddl_5.SetSelected CStr(Format(mn_num, "00"))
+      ddl_6.SetSelected CStr(Format(sc_num, "00"))
+    Else                                'if time text boxes are being used...
+      txt_4.Visible = True                            'enable time text boxes
+      txt_4.Enabled = True
+      txt_5.Visible = True
+      txt_5.Enabled = True
+      txt_6.Visible = True
+      txt_6.Enabled = True
+      cobj_string_4.Fill CStr(hr_num)                 'initialize time text boxes
+      If time_option = 2 Then
+        cobj_string_4.Fill CStr(Format(hr_num, "00"))
+      End If
+      cobj_string_5.Fill CStr(Format(mn_num, "00"))
+      cobj_string_6.Fill CStr(Format(sc_num, "00"))
+    End If
+
+    If time_option = 1 Then
+      txt_7.Visible = True                            '12 hour clock
+      txt_7.Enabled = True
+      lbl_7.Visible = True
+      lbl_7.caption = am_str & "/" & pm_str
+      cobj_string_7.Fill am_pm_str
+    Else
+      txt_7.Visible = False                           '24 hour clock
+      txt_7.Enabled = False
+      lbl_7.Visible = False
+      sep_4.Visible = False
+    End If
+  End If
+
+  Select Case format_option
+    Case 1
+      lbl_1.caption = mm_str
+      lbl_2.caption = dd_str
+      lbl_3.caption = yy_str
+      cobj_string_3.Fill CStr(yy_num)
+      If ddl_option = 0 Then
+        cobj_string_1.Fill CStr(mm_num)
+        cobj_string_2.Fill CStr(dd_num)
+      Else
+        If ddl_option = 1 Then
+          ddl_1.Enabled = True
+          ddl_2.Enabled = True
+          ddl_1.Visible = True
+          ddl_2.Visible = True
+          txt_1.Enabled = False
+          txt_2.Enabled = False
+          txt_1.Visible = False
+          txt_2.Visible = False
+        End If
+        cobj_ddl_list_1.Fill mon_list
+        cobj_ddl_list_2.Fill day_list
+        ddl_1.SetSelected CStr(mm_num)
+        ddl_2.SetSelected CStr(dd_num)
+      End If
+    Case 2
+      lbl_1.caption = dd_str
+      lbl_2.caption = mm_str
+      lbl_3.caption = yy_str
+      cobj_string_3.Fill CStr(yy_num)
+      If ddl_option = 0 Then
+        cobj_string_1.Fill CStr(dd_num)
+        cobj_string_2.Fill CStr(mm_num)
+      Else
+        If ddl_option = 1 Then
+          ddl_1.Enabled = True
+          ddl_2.Enabled = True
+          ddl_1.Visible = True
+          ddl_2.Visible = True
+          txt_1.Enabled = False
+          txt_2.Enabled = False
+          txt_1.Visible = False
+          txt_2.Visible = False
+        End If
+        cobj_ddl_list_1.Fill day_list
+        cobj_ddl_list_2.Fill mon_list
+        ddl_1.SetSelected CStr(dd_num)
+        ddl_2.SetSelected CStr(mm_num)
+      End If
+    Case 3
+      lbl_1.caption = yy_str
+      lbl_2.caption = mm_str
+      lbl_3.caption = dd_str
+      cobj_string_1.Fill CStr(yy_num)
+      If ddl_option = 0 Then
+        cobj_string_2.Fill CStr(mm_num)
+        cobj_string_3.Fill CStr(dd_num)
+      Else
+        If ddl_option = 1 Then
+          ddl_2.Enabled = True
+          ddl_3.Enabled = True
+          ddl_2.Visible = True
+          ddl_3.Visible = True
+          txt_2.Enabled = False
+          txt_3.Enabled = False
+          txt_2.Visible = False
+          txt_3.Visible = False
+        End If
+        cobj_ddl_list_2.Fill mon_list
+        cobj_ddl_list_3.Fill day_list
+        ddl_2.SetSelected CStr(mm_num)
+        ddl_3.SetSelected CStr(dd_num)
+      End If
+  End Select
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'update list box with selected value
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddl_1_Click()
+  Dim tmp_list as List
+
+  If box_option = 1 Then
+    If Not IsNumeric(ddl_1.Selected) Then
+      Set tmp_list = ddl_1.GetList
+      mm_num = tmp_list.FindFirstIndex(ddl_1.Selected) + 1
+    Else
+      mm_num = ddl_1.Selected
+    End If
+  End If
+  If box_option = 2 Then
+    dd_num = ddl_1.Selected
+  End If
+  If box_option = 3 Then
+    yy_num = CInt(txt_1.Value)
+  End If
+  mdy_config box_option
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'update list box with selected value
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddl_2_Click()
+  If box_option = 1 Then
+    dd_num = ddl_2.Selected
+  End If
+  If box_option = 2 Then
+    mm_num = ddl_2.Selected
+  End If
+  If box_option = 3 Then
+    mm_num = ddl_2.Selected
+  End If
+  mdy_config box_option
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'update list box with selected value
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddl_3_Click()
+  If box_option = 3 Then
+    dd_num = ddl_3.Selected
+  End If
+  mdy_config box_option
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process change in text box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub txt_1_KeyPress(key_a as integer)
+  If box_option = 1 and Len(txt_1.Value) > 0 Then
+    If IsNumeric(txt_1.Value) Then
+      If CInt(txt_1.Value) > 0 and CInt(txt_1.Value) < 13 Then
+        mm_num = CInt(txt_1.Value)
+        mdy_config box_option
+        SendKeys "{End}"
+      Else
+        app.msgbox get_sprintf(12261, locale, ""), CInt(txt_1.Value)
+        mm_num = 12
+        cobj_string_1.Fill "12"
+      End If
+    Else
+      mdy_config box_option
+      SendKeys "{End}"
+    End If
+  End If
+
+  If box_option = 2 and Len(txt_1.Value) > 0 Then
+    If IsNumeric(txt_1.Value) Then
+      If CInt(txt_1.Value) > 0 and CInt(txt_1.Value) < dd_max+1 Then
+        dd_num = CInt(txt_1.Value)
+        mdy_config box_option
+        SendKeys "{End}"
+      Else
+        app.msgbox get_sprintf(12262, locale, ""), CInt(txt_1.Value)
+        dd_num = dd_max
+        cobj_string_1.Fill CStr(dd_max)
+      End If
+    Else
+      mdy_config box_option
+      SendKeys "{End}"
+    End If
+  End If
+
+  If box_option = 3 and Len(txt_1.Value) > 0 Then
+    If IsNumeric(txt_1.Value) Then
+      If CInt(txt_1.Value) > 99 and CInt(txt_1.Value) < 10000 Then
+        yy_num = CInt(txt_1.Value)
+        mdy_config box_option
+        SendKeys "{End}"
+      End If
+    Else
+      mdy_config box_option
+      SendKeys "{End}"
+    End If
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process change in text box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub txt_2_KeyPress(key_a as integer)
+  If box_option = 1 and Len(txt_2.Value) > 0 Then
+    If IsNumeric(txt_2.Value) Then
+      If CInt(txt_2.Value) > 0 and CInt(txt_2.Value) < dd_max+1 Then
+        dd_num = CInt(txt_2.Value)
+        mdy_config box_option
+        SendKeys "{End}"
+      Else
+        app.msgbox get_sprintf(12262, locale, ""), CInt(txt_2.Value)
+        dd_num = dd_max
+        cobj_string_2.Fill CStr(dd_max)
+      End If
+    Else
+      mdy_config box_option
+      SendKeys "{End}"
+    End If
+  Else
+    If Len(txt_2.Value) > 0 Then
+      If IsNumeric(txt_2.Value) Then
+        If CInt(txt_2.Value) > 0 and CInt(txt_2.Value) < 13 Then
+          mm_num = CInt(txt_2.Value)
+          mdy_config box_option
+          SendKeys "{End}"
+        Else
+          app.msgbox get_sprintf(12261, locale, ""), CInt(txt_2.Value)
+          mm_num = 12
+          cobj_string_2.Fill "12"
+        End If
+      Else
+        mdy_config box_option
+        SendKeys "{End}"
+      End If
+    End If
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process change in text box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub txt_3_KeyPress(key_a as integer)
+  If box_option = 3 and Len(txt_3.Value) > 0 Then
+    If IsNumeric(txt_3.Value) Then
+      If CInt(txt_3.Value) > 0 and CInt(txt_3.Value) < dd_max+1 Then
+        dd_num = CInt(txt_3.Value)
+        mdy_config box_option
+        SendKeys "{End}"
+      Else
+        app.msgbox get_sprintf(12262, locale, ""), CInt(txt_3.Value)
+        dd_num = dd_max
+        cobj_string_3.Fill CStr(dd_max)
+      End If
+    Else
+      mdy_config box_option
+      SendKeys "{End}"
+    End If
+  Else
+    If Len(txt_3.Value) > 0 Then
+      If IsNumeric(txt_3.Value) Then
+        If CInt(txt_3.Value) > 99 and CInt(txt_3.Value) < 10000 Then
+          yy_num = CInt(txt_3.Value)
+          mdy_config box_option
+          SendKeys "{End}"
+        End If
+      Else
+        mdy_config box_option
+        SendKeys "{End}"
+      End If
+    End If
+  End If
+End Sub
+
+
+'Time Fields
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process change in dropdown box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddl_4_Click()
+  hr_num = ddl_4.Selected
+  mdy_config box_option
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process change in dropdown box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddl_5_Click()
+  mn_num = ddl_5.Selected
+  mdy_config box_option
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process change in dropdown box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddl_6_Click()
+  sc_num = ddl_6.Selected
+  mdy_config box_option
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process change in text box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub txt_4_KeyPress(key_a as integer)
+  If IsNumeric(txt_4.Value) Then
+    hr_num = CInt(txt_4.Value)
+  End If
+  mdy_config box_option
+  SendKeys "{End}"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process change in text box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub txt_5_KeyPress(key_a as integer)
+  If IsNumeric(txt_5.Value) Then
+    mn_num = CInt(txt_5.Value)
+  End If
+  mdy_config box_option
+  SendKeys "{End}"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process change in text box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub txt_6_KeyPress(key_a as integer)
+  If IsNumeric(txt_6.Value) Then
+    sc_num = CInt(txt_6.Value)
+  End If
+  mdy_config box_option
+  SendKeys "{End}"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process change in text box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub txt_7_KeyPress(key_a as integer)
+  If time_option = 1 Then
+    If Chr(key_a) = "a" or Chr(key_a) = "A" Then
+      am_pm_str = am_str
+    End If
+    If Chr(key_a) = "p" or Chr(key_a) = "P" Then
+      am_pm_str = pm_str
+    End If
+    cobj_string_7.Fill am_pm_str
+    SendKeys "{End}"
+    mdy_config box_option
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'process double_click in text box, then evaluate and reset form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub txt_7_DblClick()
+  If time_option = 1 Then
+    If am_pm_str = am_str Then
+      am_pm_str = pm_str
+    Else
+      am_pm_str = am_str
+    End If
+    cobj_string_7.Fill am_pm_str
+    SendKeys "{End}"
+    mdy_config box_option
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'format and send return string, then close form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub btn_done_Click()
+  Dim return_date As Date
+
+  return_date = DateSerial(yy_num, mm_num, dd_num)
+  If time_option > 0 Then
+    If time_option = 1 and am_pm_str = pm_str Then
+      hr_num = hr_num + 12
+    End If
+    return_date = DateAdd("h", hr_num, return_date)
+    return_date = DateAdd("n", mn_num, return_date)
+    return_date = DateAdd("s", sc_num, return_date)
+    me.NotifyParent 1956, Format(return_date, "mm/dd/yyyy ttttt")
+    fc_date_str = Format(return_date, "mm/dd/yyyy ttttt")
+  Else
+    me.NotifyParent 1956, Format(return_date, "mm/dd/yyyy")
+    fc_date_str = Format(return_date, "mm/dd/yyyy")
+  End If
+
+  me.Close
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'send empty string, then close form
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub btn_cancel_Click()
+  me.NotifyParent 1956, ""
+  me.Close
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'standard message handling
+'
+'Copyright (C) 1998 First Choice Software, Inc.        All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Message(ByVal num As Long, ByVal info As String)
+  Dim err_flag As Boolean
+  Dim cur_date As Date
+
+  If info <> "" Then
+    Select Case num
+      Case cbCloseMessage
+        Me.Close
+      Case cbFirstMessage + 1
+
+        If IsNumeric(Mid(info,1,1)) Then              'test box_option for 1,2 or 3 value
+          box_option = CInt(Mid(info,1,1))
+        End If
+        If box_option < 1 or box_option > 3 Then
+          app.msgbox get_sprintf(12260, locale, "")
+          Exit Sub
+        End If
+
+        If IsNumeric(Mid(info,2,1)) Then              'test ddl_option for 0 or 1 value
+          ddl_option = CInt(Mid(info,2,1))
+        End If
+        If ddl_option < 0 or ddl_option > 1 Then
+          app.msgbox get_sprintf(12260, locale, "")
+          Exit Sub
+        End If
+
+        If IsNumeric(Mid(info,3,1)) Then              'test time_option for 0,1 or 2 value
+          time_option = CInt(Mid(info,3,1))
+        End If
+        If time_option < 0 or time_option > 2 Then
+          app.msgbox get_sprintf(12260, locale, "")
+          Exit Sub
+        End If
+
+        If IsNumeric(Mid(info,4,1)) Then              'test mon_option for 0,1 or 2 value
+          mon_option = CInt(Mid(info,4,1))
+        End If
+        If mon_option < 0 or time_option > 2 Then
+          app.msgbox get_sprintf(12260, locale, "")
+          Exit Sub
+        End If
+
+        date_string = Mid(info,5,8)
+        time_string = Mid(info,13,6)
+        cur_date = App.CurrentDate
+
+        If IsNumeric(date_string)Then
+          mm_num = CInt(Mid(date_string,1,2))
+          dd_num = CInt(Mid(date_string,3,2))
+          yy_num = CInt(Mid(date_string,5,4))
+        Else
+          mm_num = DatePart("m", cur_date)
+          dd_num = DatePart("d", cur_date)
+          yy_num = DatePart("yyyy", cur_date)
+        End If
+        test_leap_year yy_num
+
+        If time_option > 0 Then
+          If IsNumeric(time_string)Then
+            hr_num = CInt(Mid(time_string,1,2))
+            mn_num = CInt(Mid(time_string,3,2))
+            sc_num = CInt(Mid(time_string,5,2))
+            If hr_num < 0 Or hr_num > 23 Then
+              app.msgbox get_sprintf(12263, locale, "") & hr_num
+              err_flag = True
+            End If
+            If mn_num < 0 Or mn_num > 59 Then
+              app.msgbox get_sprintf(12264, locale, "") & mn_num
+              err_flag = True
+            End If
+            If sc_num < 0 Or sc_num > 59 Then
+              app.msgbox get_sprintf(12267, locale, "") & sc_num
+              err_flag = True
+            End If
+          Else
+'           me.caption = CStr(cur_date)
+            hr_num = DatePart("h", cur_date)
+            mn_num = DatePart("n", cur_date)
+            sc_num = DatePart("s", cur_date)
+          End If
+          If hr_num >= 12 then                        'set am or pm based on hour
+            am_pm_str = pm_str
+          Else
+            am_pm_str = am_str
+          End If
+        End If
+
+        If mm_num < 1 Or mm_num > 12 Then
+          app.msgbox get_sprintf(12261, locale, ""), mm_num
+          err_flag = True
+        Else
+          Select Case mm_num
+            Case 1,3,5,7,8,10,12
+              If dd_num < 1 Or dd_num > 31 Then
+                app.msgbox get_sprintf(12262, locale, ""), dd_num
+                err_flag = True
+              End If
+            Case 4,6,9,11
+              If dd_num < 1 Or dd_num > 30 Then
+                app.msgbox get_sprintf(12262, locale, ""), dd_num
+                err_flag = True
+              End If
+            Case 2
+              If leap_year Then
+                If dd_num < 1 Or dd_num > 29 Then
+                  app.msgbox get_sprintf(12262, locale, ""), dd_num
+                  err_flag = True
+                End If
+              Else
+                If dd_num < 1 Or dd_num > 28 Then
+                  app.msgbox get_sprintf(12262, locale, ""), dd_num
+                  err_flag = True
+                End If
+              End If
+          End Select
+        End If
+
+        If err_flag = False Then        'load initial values into form
+          mdy_config box_option
+        Else
+          me.close
+        End If
+
+      Case Else
+        Me.DoDefault
+    End Select
+  End If
+End Sub

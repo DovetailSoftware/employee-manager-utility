@@ -1,0 +1,652 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        : Employee Manager Form 2266
+'
+' Series         : First Choice Administration Series(tm)
+'
+' Name           : fc2266.cbs
+'
+' Description    : Allows for workgroup member data to be modified
+'
+' Author         : First Choice Software, Inc.
+'                  4412 Spicewood Springs Road
+'                  Suite 701
+'                  Austin, TX  78759
+'                  (512) 418-2905
+'                  EMAIL: support@fchoice.com
+'                  www.fchoice.com
+'
+' Platforms      : This version supports Clarify 4.0 and later
+'
+' Copyright (C)  1999 First Choice Software, Inc.
+' All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'   Functional Declarations
+'
+' Copyright (C) 1999. First Choice Software, Inc. All Rights Reserved
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'MEMBER DATA TAB
+
+Option Explicit
+' Global Variables
+'
+Global locale        As String          'global variables
+Global fc_date_str   As String          'holds the latest date process by the date dialog box
+Dim sci_installed    As Boolean
+
+' Form ID's
+'
+Const FRM_WRKGRP_MAIN%    = 2265
+
+' Message values
+'
+Const MSG_FIRST_EMP_MAN   = CBFirstMessage + 3000
+Const MSG_ENA_DEFAULTS    = MSG_FIRST_EMP_MAN + 0 'enable "set default" chkboxes
+Const MSG_DISA_DEFAULTS   = MSG_FIRST_EMP_MAN + 1 'disable "set default" chkboxes
+Const MSG_DATA_CHANGED    = MSG_FIRST_EMP_MAN + 2 'cobj_recWrkgrpDef data changed
+Const MSG_DATA_CLEARED    = MSG_FIRST_EMP_MAN + 3 'disable the replace button on main form
+
+Declare Sub create_RcConfigDdl()
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Declare external functions
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Sub get_strings(start_val As Long, num_strings As Integer, _
+                               locale As String, application As String, ret_strings As List)
+
+Declare Public Function get_sprintf(str_num As Long, locale As String, application As String, _
+                                    Optional arg1 As Variant, Optional arg2 As Variant, _
+                                    Optional arg3 As Variant, Optional arg4 As Variant, _
+                                    Optional arg5 As Variant, Optional arg6 As Variant) As String
+
+Declare Function msg_box(the_text As String, the_caption As String, the_type As Integer) As Integer
+
+Declare Function fc_datebox(dt_format as Integer, ddl_option as Integer, time_option as Integer, _
+                            mon_option as Integer, optional date_string as Variant, _
+                            optional time_string as Variant) As Integer
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Form_Load()
+  Dim query       As New SQLDB          'SQL Query object
+  Dim ret_str     As String             'return string
+  Dim ret_strings As New List           'list for control strings
+  Dim sql_str     As String             'sql string
+
+  me.dodefault
+
+  get_strings 13906, 12, locale, "", ret_strings
+  lblDefault.caption                = ret_strings.ItemByIndex(0)
+  chkSuperEn.caption                = ret_strings.ItemByIndex(1)
+  chkRsrcCfgEna.caption             = ret_strings.ItemByIndex(2)
+  chkLaborRateEna.caption           = ret_strings.ItemByIndex(3)
+  chkSrcCtlEna.caption              = ret_strings.ItemByIndex(4)
+
+  lblFirstName.caption              = ret_strings.ItemByIndex(5)
+  lblLastName.caption               = ret_strings.ItemByIndex(6)
+
+  lblDefaulta.caption               = ret_strings.ItemByIndex(7)
+  chkActSuper.caption               = ret_strings.ItemByIndex(8)
+  chkFieldEng.caption               = ret_strings.ItemByIndex(9)
+  chkAllowProxy.caption             = ret_strings.ItemByIndex(10)
+  chkEmpStartsToday.caption         = ret_strings.ItemByIndex(11)
+
+  get_strings 13960, 3, locale, "", ret_strings
+  chkWrkGrpEna.caption              = ret_strings.ItemByIndex(0)
+  optEffToday.caption               = ret_strings.ItemByIndex(1)
+  optEffDate.caption                = ret_strings.ItemByIndex(2)
+
+  sql_str = "select field_name from adp_sch_info where field_name = '" + "x_sci_ext_app" + "'"
+  query.Select sql_str, ret_str
+  If Len(ret_str) > 0 Then 
+    sci_installed = True
+  Else
+    chkSrcCtlEna.Enabled = False
+    chkSrcCtlEna.Visible = False
+    ddlSrcCtl.Enabled = False
+    ddlSrcCtl.Visible = False
+  End If
+  
+  txtWrkGrpStartDate.enabled = FALSE
+'  grpEffDate.enabled = FALSE
+
+  txtSupervisorFirst.enabled = False
+  txtSupervisorLast.enabled = False
+  txtLaborRate.enabled = False
+  create_RcConfigDdl
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Load RcConfig DDL
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub create_RcConfigDdl()
+  Dim i       As Integer                'loop integer
+  Dim rc_list As New List               'temp rc_config list
+  Dim t_list  As List                   'temp list
+  Dim t_rec   As Record                 'temp record
+  Dim t_ret   As New BulkRetrieve       'bulkretrieve area
+  Dim t_str   As String                 'temp string
+
+  rc_list.ItemType = "string"
+  t_ret.SimpleQuery 0, "rc_config"
+  t_ret.RetrieveRecords
+  
+  Set t_list = t_ret.GetRecordList(0)
+  for i = 0 to t_list.count - 1
+    Set t_rec = t_list.ItemByIndex(i)
+    t_str = t_rec.GetField("name")
+    rc_list.AppendItem t_str
+  next i
+  cobj_losRcConfig.Fill rc_list
+End Sub 
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Supervisor checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdCheckSuper_click()
+  Dim first   As String                 'temp first name
+  Dim last    As String                 'temp last name
+  Dim retVal  As Integer                'function return value
+  Dim t_rec   As New Record             'temp record
+                   
+                    ' set up a filter record
+  t_rec.RecordType = "empl_user"
+                    ' get the data from user screen
+                    ' into local record
+                    ' append % to use partial strings
+                    
+  Set t_rec = cobj_supervisor.contents
+  first = t_rec.GetField("first_name")
+  last = t_rec.GetField("last_name")  
+  
+                    ' now clear out the record to use
+                    ' as a filter for the search
+  Set t_rec = New Record
+  t_rec.RecordType = "empl_user"
+  If Len(first) > 0 Then
+    t_rec.SetField "first_name", first + "%"
+  End If
+  If Len(last) > 0 Then
+    t_rec.SetField "last_name", last + "%"
+  End If
+  t_rec.SetField "acting_super", 1
+  t_rec.SetField "status", 1
+  
+                    ' call showselect method.
+                    ' if no form posted, clear contextual
+                    ' object so it will show up as
+                    ' not validated when we go to 
+                    ' save the data
+  retVal = App.ShowSelect (cbSelEmployee, cmdCheckSuper, t_rec)
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Supervisor Use_Select
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'this dummy event occurs upon the the return from a call to app.showselect
+Sub cmdCheckSuper_UseSelect(emplList as List, emplCount as Integer)
+  Dim retVal  As Integer                'function return value
+  Dim t_rec   As Record                 'temp record
+
+                    ' if no valid records, warn
+  If emplCount = 0 Then
+'   app.MsgBox "No valid Supervisor Selected. Please Enter a valid supervisor name or press the check mark to select."
+    retVal = msg_box(get_sprintf(13985, locale, ""),get_sprintf(13981, locale, ""),0)
+
+                    ' if no matches found, 
+                    ' clear out the 
+                    ' supervisor c_obj      
+    t_rec.RecordType = "empl_user"                    
+    t_rec.SetField "first_name", ""
+    t_rec.SetField "last_name", ""
+    t_rec.SetField "employee", NULL   'the objid of the employee in view empl_user
+    cobj_supervisor.Fill t_rec
+
+
+                    ' put the cursor on the supervisor field  
+    txtSupervisorFirst.SetFocus
+
+                    ' else record returned, copy to objects
+  Else
+    Set t_rec = emplList.ItemByIndex(0)
+    cobj_supervisor.Fill t_rec
+    cobj_supervisor.DataChanged = FALSE
+    
+  End If
+
+                    ' copy supervisor data to the
+                    ' workgroup record
+  Set t_rec = cobj_recWrkgrpDef.Contents  
+  t_rec.SetField "x_supervisor_first", txtSupervisorFirst.text
+  t_rec.SetField "x_supervisor_last", txtSupervisorLast.text
+  cobj_recWrkgrpDef.Fill t_rec
+  
+                    ' notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+      
+End Sub
+  
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Supervisor info button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdSuperInfo_click()
+  Dim t_rec   As Record                 'temp record
+
+  Set t_rec = cobj_supervisor.Contents
+  If t_rec.GetField("employee") > 0 Then
+    App.ShowEmployee t_rec, cbShowEmployeeReadOnly
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Supervisor enable checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkSuperEn_click()
+  Dim t_rec   As New Record             'temp record
+                   
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkSuperEn.value = True Then
+    txtSupervisorFirst.enabled = TRUE
+    txtSupervisorLast.enabled = TRUE
+    cmdCheckSuper.enabled = TRUE
+    cmdSuperInfo.enabled = TRUE
+  Else
+    txtSupervisorFirst.enabled = FALSE
+    txtSupervisorLast.enabled = FALSE
+    cmdCheckSuper.enabled = FALSE
+    cmdSuperInfo.enabled = FALSE
+    txtSupervisorFirst.text = ""
+    txtSupervisorLast.text = ""
+
+    t_rec.RecordType = "empl_user"
+    cobj_supervisor.Fill t_rec
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Resource Config enable checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkRsrcCfgEna_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkRsrcCfgEna.value = True Then
+    ddlRsrcCfg.enabled = TRUE
+  Else
+    ddlRsrcCfg.enabled = FALSE
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Labor Rate enable checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkLaborRateEna_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkLaborRateEna.value = True Then
+    txtLaborRate.enabled = TRUE
+  Else
+    txtLaborRate.enabled = FALSE
+    txtLaborRate.value = "0"
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Source Control enable checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkSrcCtlEna_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If sci_installed Then
+    If chkSrcCtlEna.value = True Then
+      ddlSrcCtl.enabled = TRUE
+    Else
+      ddlSrcCtl.enabled = FALSE
+    End If
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Acting Supervisor enable checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkActSuperEn_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkActSuperEn.value = True Then
+    chkActSuper.enabled = TRUE
+  Else
+    chkActSuper.enabled = FALSE
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' FE enable checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkFieldEngEn_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkFieldEngEn.value = True Then
+    chkFieldEng.enabled = TRUE
+  Else
+    chkFieldEng.enabled = FALSE
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Allow proxy enable checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkAllowProxyEn_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkAllowproxyEn.value = True Then
+    chkAllowProxy.enabled = TRUE
+  Else
+    chkAllowProxy.enabled = FALSE
+  End If
+End Sub
+
+
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Acting Supervisor checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkActSuper_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Field Engineer checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkFieldEng_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Allow Proxy checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkAllowProxy_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Starts Today checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkEmpStartsToday_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Option Button - Workgroup Effective today
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                    ' this sub is called when an option button is enabled and pressed
+                    ' it will enalble or disable the date entry fields 
+                    ' depending on which button is pressed
+Sub optEffToday_click()
+
+  Dim t_rec As Record                   'holds workgroup record
+                                        'copy Workgroup_start data to the workgroup record
+  Set t_rec = cobj_recWrkgrpDef.Contents  
+
+  txtWrkGrpStartDate.enabled = FALSE
+  cmdDateTime.enabled = FALSE
+  optEffDate.value = FALSE
+
+  t_rec.SetField "x_wrkgroup_start_today", 0
+  chkEmpStartsToday.Value = 0
+'  cobj_recWrkgrpDef.Fill t_rec
+
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Option Button - Work Group Effective on specified date
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub optEffDate_click()
+  Dim t_rec As Record                   'holds workgroup record
+                                        'copy workgroup_start data to the workgroup record
+  Set t_rec = cobj_recWrkgrpDef.Contents  
+
+  txtWrkGrpStartDate.enabled = TRUE
+  cmdDateTime.enabled = TRUE
+  optEffDate.value = TRUE
+
+  t_rec.SetField "x_wrkgroup_start_today", 1
+  chkEmpStartsToday.Value = 1
+'  cobj_recWrkgrpDef.Fill t_rec
+
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' CheckBox - Workgroup Start Date
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkWrkGrpEna_click()
+  Dim t_rec As Record                   'holds workgroup record
+                                        'copy workgroup_start data to the workgroup record
+  Set t_rec = cobj_recWrkgrpDef.Contents  
+
+  If chkWrkGrpEna.value = TRUE Then
+    optEffToday.enabled = TRUE
+    optEffDate.enabled = TRUE
+'    grpEffDate.enabled = TRUE
+    If t_rec.GetField("x_wrkgroup_start_today") = 0 Then
+      optEffToday_click
+    Else
+      optEffDate_click
+    End If
+  Else
+    optEffToday.enabled = FALSE
+    optEffDate.enabled = FALSE
+    txtWrkGrpStartDate.enabled = FALSE
+    cmdDateTime.enabled = FALSE
+'    grpEffDate.enabled = FALSE
+    'notify main form that data has changed
+    Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Calendar button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdDateTime_Click()
+  Dim curr_time     As Date             'date variable
+  Dim date_dlg      As New CommonDialog 'date dialog area
+  Dim date_string   As String           'initial date value
+  Dim ddl_option    As Integer          'ddl option: 0-txt_box, 1=ddl_box
+  Dim dt_format     As Integer          'date format: 1-MM/DD/YY, 2=DD/MM/YY, 3=YY/MM/DD
+  Dim mon_option    As Integer          'mon_option: 0=num, 1=month name, 2=mon abbr.
+  Dim t_list        As List             'temp record list
+  Dim t_rec         As New Record       'temp records
+  Dim t_ret         As New BulkRetrieve 'bulkretrieve area
+  Dim t_str         As String           'temp string
+  Dim time_option   As Integer          'time option: 1=12 hr, 2=24 hr
+  Dim time_string   As String           'initial time value
+  Dim ret_val       As Integer          'function return value
+
+                    ' Unselect anything selected in the
+                    ' grid. Clear the contextual object
+                    ' which feeds data to the tabs.
+                    ' Send msgs to the tabs to
+                    ' disable and clear default
+                    ' settings as needed.
+
+  curr_time = App.CurrentDate    
+
+                    ' Retrieve the date/time options specified in
+                    ' the fc_locale table for the current locale.
+  t_ret.SimpleQuery 0, "fc_locale"
+  t_ret.AppendFilter 0, "locale_name", cbEqual, locale
+  t_ret.RetrieveRecords
+  Set t_list = t_ret.GetRecordList(0)
+  If t_list.count > 0 Then
+    Set t_rec = t_list.ItemByIndex (0)
+
+    Select Case Mid(t_rec.GetField("d_fmt"),1,2)
+      Case "%M"
+        dt_format = 1
+      Case "%D"
+        dt_format = 2
+      Case "%Y"
+        dt_format = 3
+      Case Else
+        dt_format = 1
+    End Select
+    ddl_option = 1
+    mon_option = 0
+    If InStr(t_rec.GetField("d_fmt"),"%B") Then mon_option = 1
+    If InStr(t_rec.GetField("d_fmt"),"%b") Then mon_option = 2
+    time_option = 1
+    
+    If Len(txtWrkGrpStartDate.Text) > 0 Then
+      date_string = Format(txtWrkGrpStartDate.Text,"mmddyyyy")
+      time_string = Format(txtWrkGrpStartDate.Text,"hhnnss")
+    End If
+    
+    ret_val = fc_datebox(dt_format,ddl_option,time_option,mon_option,date_string,time_string)
+    If ret_val = 0 Then
+      txtWrkGrpStartDate.text = fc_date_str
+    End If
+  Else
+    date_dlg.DateTime = CStr(txtWrkGrpStartDate.Text)
+    date_dlg.Action = cbCDDateTime
+    txtWrkGrpStartDate.text = CDate(date_dlg.DateTime)
+  End If
+
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Message Handler
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Message(ByVal msgNum as Long, ByVal msgStr as String)
+  Select Case msgNum
+    Case MSG_ENA_DEFAULTS
+      chkSuperEn.enabled = TRUE
+      chkSuperEn_click
+      
+      chkRsrcCfgEna.enabled = TRUE
+      chkRsrcCfgEna_click
+  
+      chkLaborRateEna.enabled = TRUE
+      chkLaborRateEna_click
+
+      chkWrkGrpEna.enabled = TRUE
+
+      chkWrkGrpEna_click
+
+
+      If sci_installed Then
+        chkSrcCtlEna.enabled = TRUE
+        chkSrcCtlEna_click
+      End If
+  
+      chkActSuperEn.enabled = TRUE
+      chkActSuperEn_click
+      chkFieldEngEn.enabled = TRUE
+      chkFieldEngEn_click
+      chkAllowProxyEn.enabled = TRUE
+      chkAllowProxyEn_click
+
+      chkEmpStartsToday.enabled = TRUE
+  
+                      ' since we only enable defaults 
+                      ' when initializing data,
+                      ' disable the 'Replace'
+                      ' button (it is used as a data dirty
+                      ' indicator)
+      Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CLEARED, ""
+      
+    Case MSG_DISA_DEFAULTS
+      chkSuperEn.enabled = FALSE
+      chkSuperEn_click
+      
+      chkRsrcCfgEna.enabled = FALSE
+      chkRsrcCfgEna_click
+  
+      chkLaborRateEna.enabled = FALSE
+      chkLaborRateEna_click
+  
+      chkWrkGrpEna.enabled = FALSE
+      chkWrkGrpEna_click
+
+      If sci_installed Then
+        chkSrcCtlEna.enabled = FALSE
+        chkSrcCtlEna_click
+      End If
+  
+      chkActSuperEn.Enabled = FALSE
+      chkActSuperEn_click
+      chkFieldEngEn.enabled = FALSE
+      chkFieldEngEn_click
+      chkAllowProxyEn.enabled = FALSE
+      chkAllowProxyEn_click
+
+      chkEmpStartsToday.enabled = FALSE
+      
+                      ' disable the replace button
+      Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CLEARED, ""
+      
+    Case Else
+      Me.DoDefault
+  End Select
+End Sub

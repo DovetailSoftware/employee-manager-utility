@@ -1,0 +1,838 @@
+OBJECT  TYPE="window_db", NAME="WINDOW_DB_2271_1.0_em1.0"
+UNIQUE_FIELD = id, ver_clarify, ver_customer
+  FIELDS
+   title ="Queues";
+   id=2271;
+   top_c=32;
+   bottom_c=262;
+   left_c=32;
+   right_c=696;
+   flags=0;
+   type=12;
+   form=1;
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   min_width=0;
+   min_height=0;
+   description ="";
+   dimmable=0;
+   dialog_name ="workgroup Queues";
+   ver_clarify ="1.0";
+   ver_customer ="em1.0";
+   base_flag ="";
+   preload ="";
+   dlg_time_stamp = DATE "03/02/2000 15:03:07";
+   factor_top=0;
+   factor_bottom=0;
+   factor_left=0;
+   factor_right=0;
+   ver_cl_srce ="";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_OBJECT  NAME="WINDOW_DB_2271_1.0_em1.0"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_2271_1.0_em1.0_1"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=1;
+   title ="Selected Queues:";
+   top_c=48;
+   bottom_c=72;
+   left_c=344;
+   right_c=528;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="lbl_sel";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=2271;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_2271_1.0_em1.0_1"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_2271_1.0_em1.0_2"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=2;
+   title ="Available Queues:";
+   top_c=48;
+   bottom_c=72;
+   left_c=48;
+   right_c=232;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="lbl_avail";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=2271;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_2271_1.0_em1.0_2"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_2271_1.0_em1.0_3"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=3;
+   title ="List Queues where Name:";
+   top_c=20;
+   bottom_c=36;
+   left_c=16;
+   right_c=232;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="lbl_filter";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=2271;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_2271_1.0_em1.0_3"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_2271_1.0_em1.0_4"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=7;
+   id=4;
+   title ="";
+   top_c=16;
+   bottom_c=40;
+   left_c=168;
+   right_c=336;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="ddlFilter";
+   intval1=0;
+   intval2=-1;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=2271;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_2271_1.0_em1.0_4"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_2271_1.0_em1.0_5"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=3;
+   id=5;
+   title ="";
+   top_c=16;
+   bottom_c=40;
+   left_c=344;
+   right_c=528;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="txtFilter";
+   intval1=0;
+   intval2=-1;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=2271;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_2271_1.0_em1.0_5"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_2271_1.0_em1.0_6"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=6;
+   title ="List";
+   top_c=18;
+   bottom_c=38;
+   left_c=544;
+   right_c=640;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdList";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=2271;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_2271_1.0_em1.0_6"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_2271_1.0_em1.0_7"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=13;
+   id=7;
+   title ="Grid11";
+   top_c=72;
+   bottom_c=216;
+   left_c=48;
+   right_c=232;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=67112960;
+   vlink_name ="LOS_avail_queue";
+   vlink_fld=0;
+   vlink_dtype=518;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="clb_avail_queue";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=2271;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_2271_1.0_em1.0_7"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_2271_1.0_em1.0_8"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=8;
+   title ="Copy >>";
+   top_c=72;
+   bottom_c=92;
+   left_c=240;
+   right_c=336;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdCopy";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=2271;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_2271_1.0_em1.0_8"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_2271_1.0_em1.0_9"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=9;
+   title ="<< Remove";
+   top_c=96;
+   bottom_c=116;
+   left_c=240;
+   right_c=336;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdRemove";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=2271;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_2271_1.0_em1.0_9"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_2271_1.0_em1.0_10"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=13;
+   id=10;
+   title ="Grid11";
+   top_c=72;
+   bottom_c=216;
+   left_c=344;
+   right_c=528;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=67112960;
+   vlink_name ="LOS_sel_queue";
+   vlink_fld=0;
+   vlink_dtype=518;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="clb_sel_queue";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=2271;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_2271_1.0_em1.0_10"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_2271_1.0_em1.0_4_0"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=0;
+   value1 ="Starts with";
+   value2 ="";
+   value3 ="";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   ctl_id=4;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_2271_1.0_em1.0_4" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_2271_1.0_em1.0_4_0"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_2271_1.0_em1.0_4_1"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=1;
+   value1 ="Ends with";
+   value2 ="";
+   value3 ="";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   ctl_id=4;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_2271_1.0_em1.0_4" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_2271_1.0_em1.0_4_1"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_2271_1.0_em1.0_4_2"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=2;
+   value1 ="Contains";
+   value2 ="";
+   value3 ="";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   ctl_id=4;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_2271_1.0_em1.0_4" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_2271_1.0_em1.0_4_2"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_2271_1.0_em1.0_7_0"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=0;
+   value1 ="LOR_avail_queue";
+   value2 ="Name";
+   value3 ="title";
+   intval1=1;
+   intval2=516;
+   intval3=154;
+   intval4=8;
+   ctl_id=7;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_2271_1.0_em1.0_7" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_2271_1.0_em1.0_7_0"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_2271_1.0_em1.0_10_0"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=0;
+   value1 ="LOR_sel_queue";
+   value2 ="Name";
+   value3 ="title";
+   intval1=1;
+   intval2=516;
+   intval3=154;
+   intval4=8;
+   ctl_id=10;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_2271_1.0_em1.0_10" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_2271_1.0_em1.0_10_0"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_recWrkgrpDef"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="recWrkgrpDef";
+   type=3516;
+   idx=0;
+   behavior=0;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_recWrkgrpDef"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_lorFilterSet"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="lorFilterSet";
+   type=425;
+   idx=1;
+   behavior=0;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_lorFilterSet"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_loiFilterSel"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="loiFilterSel";
+   type=512;
+   idx=2;
+   behavior=0;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_loiFilterSel"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_loiSelWorkgroup"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="loiSelWorkgroup";
+   type=518;
+   idx=3;
+   behavior=0;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_loiSelWorkgroup"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_lorWorkgroup"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="lorWorkgroup";
+   type=3516;
+   idx=4;
+   behavior=0;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_lorWorkgroup"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_lngCalEffDate"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="lngCalEffDate";
+   type=512;
+   idx=5;
+   behavior=0;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_lngCalEffDate"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_supervisor"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="supervisor";
+   type=55;
+   idx=6;
+   behavior=0;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_supervisor"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_losRcConfig"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="losRcConfig";
+   type=518;
+   idx=7;
+   behavior=0;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_losRcConfig"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_site"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="site";
+   type=88;
+   idx=8;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_site"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_losOfflinePriv"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="losOfflinePriv";
+   type=518;
+   idx=9;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_losOfflinePriv"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_losOnlinePriv"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="losOnlinePriv";
+   type=518;
+   idx=10;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_losOnlinePriv"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_bizcal"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="bizcal";
+   type=256;
+   idx=11;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_bizcal"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOR_avail_queue"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="LOR_avail_queue";
+   type=4;
+   idx=12;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOR_avail_queue"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOR_sel_queue"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="LOR_sel_queue";
+   type=4;
+   idx=13;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOR_sel_queue"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOS_sel_queue"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="LOS_sel_queue";
+   type=518;
+   idx=14;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOS_sel_queue"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOS_avail_queue"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="LOS_avail_queue";
+   type=518;
+   idx=15;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOS_avail_queue"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOR_avail_emp"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="LOR_avail_emp";
+   type=44;
+   idx=16;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOR_avail_emp"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOR_sel_emp"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="LOR_sel_emp";
+   type=44;
+   idx=17;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOR_sel_emp"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOS_sel_emp"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="LOS_sel_emp";
+   type=518;
+   idx=18;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOS_sel_emp"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOS_availl_emp"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="LOS_availl_emp";
+   type=518;
+   idx=19;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_LOS_availl_emp"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_lor_new_wg"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="lor_new_wg";
+   type=518;
+   idx=20;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_lor_new_wg"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_2271_1.0_em1.0_los_new_wg"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="los_new_wg";
+   type=516;
+   idx=21;
+   behavior=16;
+   str_size=0;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_2271_1.0_em1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_2271_1.0_em1.0_los_new_wg"
+

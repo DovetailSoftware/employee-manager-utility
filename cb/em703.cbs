@@ -1,0 +1,687 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        : Employee Manager Form 703
+'
+' Series         : First Choice Administration Series(tm)
+'
+' Name           : em703.cbs
+'
+' Description    : Employee form
+'
+' Author         : First Choice Software, Inc.
+'                  4412 Spicewood Springs Road
+'                  Suite 701
+'                  Austin, TX  78759
+'                  (512) 418-2905
+'                  EMAIL: support@fchoice.com
+'                  www.fchoice.com
+'
+' Platforms      : This version supports Clarify 4.0 and later
+'
+' Copyright (C)  1999 First Choice Software, Inc.
+' All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'   Functional Declarations
+'
+' Copyright (C) 1999. First Choice Software, Inc. All Rights Reserved
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Option Explicit
+' Global Variables
+'
+Global locale     As String   'global variables
+
+Dim em_overide    As Boolean
+Dim sci_installed As Boolean
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Declare external functions
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Sub update_employee(t_list As List)
+Declare Public Function get_sprintf(str_num As Long, locale As String, application As String, _
+                                    Optional arg1 As Variant, Optional arg2 As Variant, _
+                                    Optional arg3 As Variant, Optional arg4 As Variant, _
+                                    Optional arg5 As Variant, Optional arg6 As Variant) As String
+
+Declare Function msg_box(the_text As String, the_caption As String, the_type As Integer) As Integer
+Declare Sub work_group_click()
+Declare Sub SUPERVISOR_Click()
+
+Global move_emp_rec  As Record
+Dim    local_emp_rec As Record
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Form_Load()
+  Dim e_rec       As Record             'employee record
+  Dim i           As Integer            'loop integer
+  Dim query       As New SQLDB          'sql query object
+  Dim rc_list     As New List           'list of resource config names
+  Dim sup_list    As New List           'list of supervisor names
+  Dim ret_str     As String             'sql return string
+  Dim sql_str     As String             'sql query string
+  Dim t_int       As Integer            'list index
+  Dim t_list      As List               'temp list
+  Dim t_rec       As Record             'temp rec
+  Dim t_ret       As New BulkRetrieve   'bulkretrieve
+  Dim t_str       As String             'temp string
+  Dim x_rec       As New Record         'new temp rec
+
+  me.dodefault
+
+  set e_rec = cobj_employee.Contents    'set current employee as root object
+  t_ret.SimpleQuery        0, "employee"                      'added 2-18-2000
+  t_ret.AppendFilter       0, "acting_supvr", cbEqual, 1      'added 2-18-2000
+  t_ret.SimpleQuery        1, "config_itm"                    'modified 2-18-2000
+  t_ret.AppendFilter       1, "name", cbEqual, "EM_Overide"   'modified 2-18-2000
+  t_ret.SimpleQuery        2, "rc_config"                     'modified 2-18-2000
+
+  If e_rec.GetField("objid") > 0 Then
+    t_ret.SetRoot            e_rec      'get employee, user, config_itm and rc_config records
+    t_ret.TraverseFromRoot   3, "employee2user"
+    t_ret.TraverseFromParent 4, "user2rc_config", 3
+  End If
+  t_ret.RetrieveRecords
+  
+  Set t_list = t_ret.GetRecordList(0) 'set overide option based on configuration setting    'added 2-18-2000
+  For i = 0 To t_list.Count - 1                                                             'added 2-18-2000
+    Set t_rec = t_list.ItemByIndex (i)                                                      'added 2-18-2000
+    sup_list.AppendItem t_rec.GetField("first_name") & " " & t_rec.GetField("last_name")    'added 2-18-2000
+  Next i                                                                                    'added 2-18-2000
+  sup_list.sort                                                                             'added 2-18-2000
+  cobj_supr_list.Fill sup_list        'fill dropdown list with list of supervisor names     'added 2-18-2000
+  
+  Set t_list = t_ret.GetRecordList(1) 'set overide option based on configuration setting    'modified 2-18-2000
+  If t_list.Count > 0 Then
+    Set t_rec = t_list.ItemByIndex (0)
+    If t_rec.GetField("i_value") <> 0 Then em_overide = True
+  End If
+  
+  Set t_list = t_ret.GetRecordList(2) 'build list of all resource configuration names       'modified 2-18-2000
+  For i = 0 To t_list.Count - 1
+    Set t_rec = t_list.ItemByIndex (i)
+    rc_list.AppendItem t_rec.GetField("name")
+  Next i
+  rc_list.sort
+  cobj_LOR_res_cfg.Fill rc_list         'fill dropdown list with list of resource configuration names
+
+  If e_rec.GetField("objid") > 0 Then
+    Set t_list = t_ret.GetRecordList(4) 'get name of employee's current rc_config           'modified 2-18-2000
+    If t_list.Count > 0 Then
+      Set t_rec = t_list.ItemByIndex (0)
+      t_str = t_rec.GetField("name")
+    End If
+
+    t_int = rc_list.FindFirstIndex(t_str) 'find and select employee's current rc_config
+    If t_int > -1 Then ddl_resource_cfg.SetSelected t_int
+  Else
+    ddl_resource_cfg.SetSelected "resource_config_1.0"
+  End If
+  
+                                        'set flag if SCI product is installed
+  sql_str = "select field_name from adp_sch_info where field_name = '" + "x_sci_ext_app" + "'"
+  query.Select sql_str, ret_str
+  If Len(ret_str) > 0 Then sci_installed = True
+  
+  Set move_emp_rec = Nothing
+  Set local_emp_rec = Nothing
+
+  
+  If em_overide Then                    'if overide option is on, then click the work group list
+    chk_reset_attr.Value = -1           'to display the default workgroup setting for new employees
+    If e_rec.GetField("objid") = 0 Then 
+      x_rec.recordtype = "site"    
+      cobj_office_site.fill x_rec
+      work_group_click
+    End If 
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Reset Attributes checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub work_group_click()
+  Dim bizcal_rec    As New Record       'temp biz_cal record
+  Dim bz_hdr_rec    As New Record       'temp biz_cal_hdr record
+  Dim e_rec         As Record           'employee record
+  Dim i             As Integer          'loop integer
+  Dim p_list        As List             'temp list
+  Dim q_rec         As Record           'queue record
+  Dim ret_val       As Integer          'return value
+  Dim t_int         As Integer          'temp integer
+  Dim t_list        As List             'temp list
+  Dim t_rec         As Record           'temp record
+  Dim t_ret         As New BulkRetrieve 'bulkretrieve
+  Dim t_save        As New BulkSave     'bulksave
+  Dim t_str         As String           'temp string
+  Dim u_rec         As Record           'user record
+  Dim wk_rec        As Record           'temp wk_work_hr record
+
+  me.dodefault
+  
+  If Not(em_overide) Then Exit Sub      'exit if not using overide feature
+
+  set e_rec = cobj_employee.Contents
+  
+  t_ret.SimpleQuery         0, "workgroup"
+  t_ret.AppendFilter        0, "work_group", cbEqual, work_group.Selected
+  t_ret.TraverseFromParent  1, "workgroup2queue", 0     'get workgroup queues
+
+  If e_rec.GetField("objid") > 0 Then
+    t_ret.SetRoot             e_rec
+    t_ret.TraverseFromRoot    2, "employee2user"          'get user record
+    t_ret.TraverseFromParent  3, "user_assigned2queue", 2 'get workgroup queues
+  End If
+
+  t_ret.RetrieveRecords
+
+  If e_rec.GetField("objid") > 0 Then
+    Set t_list = t_ret.GetRecordList(2)       'get user record
+    If t_list.Count > 0 Then
+      Set u_rec = t_list.ItemByIndex (0)
+    End If
+  End If
+  
+  Set t_list = t_ret.GetRecordList(0)
+  If t_list.Count > 0 Then
+    Set t_rec = t_list.ItemByIndex (0)
+    If chk_reset_attr.Value Then
+      Set p_list = cobj_priv_list.contents
+      t_str = t_rec.GetField("x_online_priv")
+      t_int = p_list.FindFirstIndex(t_str,"class_name")
+      If t_rec.GetField("x_online_priv_en") = 1 and t_int > -1 Then PRIVILEGES.SetSelected t_int
+
+      Set p_list = cobj_opriv_list.contents
+      t_str = t_rec.GetField("x_offline_priv")
+      t_int = p_list.FindFirstIndex(t_str,"class_name")
+      If t_rec.GetField("x_offline_priv_en") = 1 and t_int > -1 Then OFFLINE_PRIVS.SetSelected t_int
+
+      Set p_list = cobj_LOR_res_cfg.contents
+      t_str = t_rec.GetField("x_rc_config_name")
+      t_int = p_list.FindFirstIndex(t_str)
+      If t_rec.GetField("x_resource_cfg_en") = 1 and t_int > -1 Then ddl_resource_cfg.SetSelected t_int
+
+      If t_rec.GetField("x_site_name_en") = 1 Then 
+        OFFICE.Text = t_rec.GetField("x_site_name")
+      End If
+      If t_rec.GetField("x_password_en") = 1 Then PASSWORD.Text = t_rec.GetField("x_password")
+
+      'Only reset the start dateif we are adding a new employee
+      If e_rec.IsNew Then
+        If t_rec.GetField("x_emp_start_date_today") = 1 Then site_date.Text = App.CurrentDate
+      End If
+
+      If t_rec.GetField("x_wrkgrp_start_date_en") = 1 Then 
+        If t_rec.GetField("x_wrkgroup_start_today") = 1 Then 
+          wrkgrp_date.Text = App.CurrentDate
+        Else
+          If IsDate(t_rec.GetField("x_wrkgroup_start_date")) Then 
+            wrkgrp_date.Text = t_rec.GetField("x_wrkgroup_start_date")
+          End If
+        End If
+      End If
+
+      If t_rec.GetField("x_notification_en") = 1 Then
+         cobj_BIZ_HRS.Fill    t_rec.GetField("x_notify_hours")
+         e_rec.SetField "normal_biz_high", t_rec.GetField("x_notify_high")
+         e_rec.SetField "normal_biz_mid", t_rec.GetField("x_notify_med")
+         e_rec.SetField "normal_biz_low", t_rec.GetField("x_notify_low")
+         e_rec.SetField "after_biz_high", t_rec.GetField("x_after_notify_high")
+         e_rec.SetField "after_biz_mid", t_rec.GetField("x_after_notify_med")
+         e_rec.SetField "after_biz_low", t_rec.GetField("x_after_notify_low")
+         Cobj_EMPLOYEE.Fill e_rec
+         Set local_emp_rec = e_rec.Copy
+      End If
+      t_str = t_rec.GetField("x_default_printer")
+      If t_rec.GetField("x_default_printer_en") = 1 Then 
+        e_rec.SetField "printer", t_str
+        cobj_employee.Fill e_rec
+      End If
+
+      Set p_list = cobj_supr_list.contents
+      t_str = t_rec.GetField("x_supervisor_first") & " " & t_rec.GetField("x_supervisor_last")
+      t_int = p_list.FindFirstIndex(t_str)
+
+      If t_rec.GetField("x_supervisor_en") = 1 and t_int > -1 Then SUPERVISOR.SetSelected t_int
+      If t_rec.GetField("x_fax_en") = 1         Then FAX_NUMBER.Text = t_rec.GetField("x_fax")
+      If t_rec.GetField("x_mail_stop_en") = 1   Then MAIL_STOP.Text = t_rec.GetField("x_mail_stop")
+      If t_rec.GetField("x_labor_rate_en") = 1  Then txtLaborRate.Text = CLng(t_rec.GetField("x_labor_rate"))
+
+      If t_rec.GetField("x_act_supervisor_en") = 1 Then
+        If t_rec.GetField("x_act_supervisor") = 0 Then ACTING_SUPERVISOR.Value = False
+        If t_rec.GetField("x_act_supervisor") = 1 Then ACTING_SUPERVISOR.Value = True
+      End If
+
+      If t_rec.GetField("x_field_eng_en") = 1 Then
+        If t_rec.GetField("x_field_eng") = 0      Then FIELD_ENGINEER.Value = False
+        If t_rec.GetField("x_field_eng") = 1      Then FIELD_ENGINEER.Value = True
+      End If
+
+      If t_rec.GetField("x_allow_proxy_en") = 1 Then
+        If t_rec.GetField("x_allow_proxy") = 0    Then ALLOW_PROXY.Value = False
+        If t_rec.GetField("x_allow_proxy") = 1    Then ALLOW_PROXY.Value = True
+      End if
+ 
+      If t_rec.GetField("x_labor_rate_en") = 1 Then txtLaborRate.Text = t_rec.GetField("x_labor_rate")
+
+      If sci_installed Then 
+        'UNCOMMENT THE LINES IN THIS IF STATEMENT
+        't_str = t_rec.GetField("x_source_control")
+        'If t_rec.GetField("x_source_ctl_en") = 1 Then DDL_SCI.SetSelected t_str
+      End If
+
+      If e_rec.GetField("objid") > 0 Then
+        t_save.UpdateRecord u_rec
+        Set t_list = t_ret.GetRecordList(3)           'unrelate user from existing queues
+        For i = 0 to t_list.Count - 1                 
+          Set q_rec = t_list.ItemByIndex (i)
+          t_save.UnrelateRecords u_rec, q_rec, "user_assigned2queue"
+        Next i
+        t_save.Save
+      End If
+  
+      If t_rec.GetField("x_biz_cal_en") = 1 Then
+        t_ret.Clear
+        t_ret.SimpleQuery         0, "wk_work_hr"
+        t_ret.AppendFilter        0, "title", cbEqual, t_rec.GetField("x_biz_cal_title")
+
+        If e_rec.GetField("objid") <> 0 Then
+          t_ret.SetRoot             e_rec
+          t_ret.TraverseFromRoot    1, "empl_hrs2biz_cal_hdr"
+          t_ret.TraverseFromParent  2, "biz_cal_hdr2biz_cal", 1
+          t_ret.TraverseFromParent  3, "biz_cal2wk_work_hr",  2
+        End If
+        t_ret.RetrieveRecords
+
+        If e_rec.GetField("objid") <> 0 Then
+          ret_val = msg_box("Do you want to update the business calendar for this employee to the workgroup default?", "Workgroup Business Calendar", 4)
+          If ret_val = 2 Then
+            Set t_list = t_ret.GetRecordList(1)         
+            If t_list.count <> 0 Then
+              Set bz_hdr_rec = t_list.ItemByIndex (0)   'get existing biz_cal_hdr for the employee
+            Else                                        ' - or - 
+              bz_hdr_rec.RecordType = "biz_cal_hdr"     'create a new biz_cal_hdr for the employee
+            End If
+
+            Set t_list = t_ret.GetRecordList(2)
+            If t_list.count <> 0 Then
+              Set bizcal_rec = t_list.ItemByIndex (0)   'get existing biz_cal for the employee
+            Else                                        ' - or - 
+              bizcal_rec.RecordType = "biz_cal"         'create a new biz_cal for the employee
+            End If
+
+            Set t_list = t_ret.GetRecordList(3)         'check to make sure same record does not 
+            If t_list.count <> 0 Then                   'already exist with same effective date
+              Set wk_rec = t_list.ItemByIndex (0)
+              If wk_rec.GetField("title") = t_rec.GetField("x_biz_cal_title") And _
+                 t_rec.GetField("x_biz_cal_eff_today") = 1     And _
+                 t_rec.GetField("x_bizcal_eff_date_en") = 1    And _
+                 IsDate(t_rec.GetField("x_bizcal_start_date")) And _
+                 bizcal_rec.GetField("effective_date") = t_rec.GetField("x_bizcal_start_date") Then
+                 Exit Sub
+              End If
+            End If
+
+            Set t_list = t_ret.GetRecordList(0)         'get wk_work_hr record for new biz_cal
+            If t_list.count <> 0 Then
+              Set wk_rec = t_list.ItemByIndex (0)
+            Else
+              Exit Sub
+            End If
+            
+            If t_rec.GetField("x_biz_cal_eff_today") = 0 Or _
+               t_rec.GetField("x_bizcal_eff_date_en") = 0 Then
+                bizcal_rec.SetField "effective_date", App.CurrentDate
+            Else 
+              If IsDate(t_rec.GetField("x_bizcal_start_date")) Then
+                bizcal_rec.SetField "effective_date", t_rec.GetField("x_bizcal_start_date")
+              Else
+                bizcal_rec.SetField "effective_date", App.CurrentDate
+              End If
+            End If
+
+            t_save.UpdateRecord wk_rec
+            t_save.InsertRecord bizcal_rec
+            If bz_hdr_rec.GetField("objid") <> 0 Then
+              t_save.UpdateRecord bz_hdr_rec
+            Else
+              t_save.InsertRecord bz_hdr_rec
+            End If
+            t_save.UpdateRecord e_rec
+
+            t_save.RelateRecords wk_rec, bizcal_rec,     "wk_work_hr2biz_cal"
+            t_save.RelateRecords bizcal_rec, bz_hdr_rec, "biz_cal2biz_cal_hdr"
+            t_save.RelateRecords bz_hdr_rec, e_rec,      "biz_cal_hdr2empl_hrs"
+
+            t_save.Save                        
+          End If
+        End If
+      End If
+    End If
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' link_emp_to_res_cfg
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub link_emp_to_res_cfg()
+  Dim e_rec       As New Record         'temp employee record
+  Dim i           As Integer            'loop integer
+  Dim q_rec       As Record             'queue record
+  Dim t_list      As List               'temp list
+  Dim t_rec       As Record             'temp record
+  Dim t_ret       As New BulkRetrieve   'bulkretrieve area
+  Dim t_save      As New BulkSave       'bulksave area
+  Dim u_rec       As Record             'temp user record
+
+  e_rec.RecordType = "employee"
+  Set e_rec = cobj_employee.contents
+
+  t_ret.SetRoot           e_rec
+  t_ret.TraverseFromRoot  0, "employee2user"
+  t_ret.SimpleQuery       1, "rc_config"
+  t_ret.AppendFilter      1, "name", cbEqual, ddl_resource_cfg.Selected
+  t_ret.SimpleQuery       2, "workgroup"
+  t_ret.AppendFilter      2, "work_group", cbEqual, work_group.Selected
+  t_ret.TraverseFromParent  3, "workgroup2queue", 2     'get workgroup queues
+  t_ret.RetrieveRecords
+
+  Set t_list = t_ret.GetRecordList(0)
+  If t_list.Count > 0 Then
+    Set u_rec = t_list.ItemByIndex (0)
+    t_save.UpdateRecord u_rec
+    Set t_list = t_ret.GetRecordList(1)
+    If t_list.Count > 0 Then
+      Set t_rec = t_list.ItemByIndex (0)
+      t_save.UpdateRecord  t_rec
+      t_save.RelateRecords t_rec, u_rec, "rc_config2user"
+    End If
+
+    Set t_list = t_ret.GetRecordList(3)             'relate user to workgroup queues
+    For i = 0 to t_list.Count - 1
+      Set q_rec = t_list.ItemByIndex (i)
+       t_save.RelateRecords u_rec, q_rec, "user_assigned2queue"
+    Next i
+    t_save.Save                        
+
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Add Click
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ADD_click()
+  Dim bizcal_rec    As New Record       'temp biz_cal record
+  Dim bz_hdr_rec    As New Record       'temp biz_cal_hdr record
+  Dim e_rec         As Record           'employee record
+  Dim i             As Integer          'loop integer
+  Dim p_list        As List             'temp list
+  Dim q_rec         As Record           'queue record
+  Dim ret_val       As Integer          'return value
+  Dim t_int         As Integer          'temp integer
+  Dim t_list        As List             'temp list
+  Dim t_rec         As Record           'temp record
+  Dim t_ret         As New BulkRetrieve 'bulkretrieve
+  Dim t_save        As New BulkSave     'bulksave
+  Dim t_str         As String           'temp string
+  Dim u_rec         As Record           'user record
+  Dim wk_rec        As Record           'temp wk_work_hr record
+
+  me.dodefault
+
+  Set e_rec = cobj_employee.contents
+  If e_rec.GetField("objid") > 0 Then link_emp_to_res_cfg
+
+  If Not(em_overide) Then Exit Sub      'exit if not using overide feature
+
+  t_ret.SimpleQuery         0, "workgroup"
+  t_ret.AppendFilter        0, "work_group", cbEqual, work_group.Selected
+  t_ret.TraverseFromParent  1, "workgroup2queue", 0     'get workgroup queues
+
+  If e_rec.GetField("objid") > 0 Then
+    t_ret.SetRoot             e_rec
+    t_ret.TraverseFromRoot    2, "employee2user"          'get user record
+    t_ret.TraverseFromParent  3, "user_assigned2queue", 2 'get workgroup queues
+  End If
+
+  t_ret.RetrieveRecords
+
+  If e_rec.GetField("objid") > 0 Then
+    Set t_list = t_ret.GetRecordList(2)       'get user record
+    If t_list.Count > 0 Then
+      Set u_rec = t_list.ItemByIndex (0)
+    End If
+  End If
+  
+  Set t_list = t_ret.GetRecordList(0)
+  If t_list.Count > 0 Then
+    Set t_rec = t_list.ItemByIndex (0)
+    If chk_reset_attr.Value Then
+      Set p_list = cobj_priv_list.contents
+      t_str = t_rec.GetField("x_online_priv")
+      t_int = p_list.FindFirstIndex(t_str,"class_name")
+      If t_rec.GetField("x_online_priv_en") = 1 and t_int > -1 Then PRIVILEGES.SetSelected t_int
+
+      Set p_list = cobj_opriv_list.contents
+      t_str = t_rec.GetField("x_offline_priv")
+      t_int = p_list.FindFirstIndex(t_str,"class_name")
+      If t_rec.GetField("x_offline_priv_en") = 1 and t_int > -1 Then OFFLINE_PRIVS.SetSelected t_int
+
+      Set p_list = cobj_LOR_res_cfg.contents
+      t_str = t_rec.GetField("x_rc_config_name")
+      t_int = p_list.FindFirstIndex(t_str)
+      If t_rec.GetField("x_resource_cfg_en") = 1 and t_int > -1 Then ddl_resource_cfg.SetSelected t_int
+
+      If t_rec.GetField("x_site_name_en") = 1 Then 
+        OFFICE.Text = t_rec.GetField("x_site_name")
+      End If
+      If t_rec.GetField("x_password_en") = 1 Then PASSWORD.Text = t_rec.GetField("x_password")
+      If t_rec.GetField("x_emp_start_date_today") = 1 Then site_date.Text = App.CurrentDate
+
+      If t_rec.GetField("x_wrkgrp_start_date_en") = 1 Then 
+        If t_rec.GetField("x_wrkgroup_start_today") = 1 Then 
+          wrkgrp_date.Text = App.CurrentDate
+        Else
+          If IsDate(t_rec.GetField("x_wrkgroup_start_date")) Then 
+            wrkgrp_date.Text = t_rec.GetField("x_wrkgroup_start_date")
+          End If
+        End If
+      End If
+
+      If t_rec.GetField("x_notification_en") = 1 Then
+         cobj_BIZ_HRS.Fill    t_rec.GetField("x_notify_hours")
+         e_rec.SetField "normal_biz_high", t_rec.GetField("x_notify_high")
+         e_rec.SetField "normal_biz_mid", t_rec.GetField("x_notify_med")
+         e_rec.SetField "normal_biz_low", t_rec.GetField("x_notify_low")
+         e_rec.SetField "after_biz_high", t_rec.GetField("x_after_notify_high")
+         e_rec.SetField "after_biz_mid", t_rec.GetField("x_after_notify_med")
+         e_rec.SetField "after_biz_low", t_rec.GetField("x_after_notify_low")
+         Cobj_EMPLOYEE.Fill e_rec
+         Set local_emp_rec = e_rec.Copy
+      End If
+      t_str = t_rec.GetField("x_default_printer")
+      If t_rec.GetField("x_default_printer_en") = 1 Then 
+        e_rec.SetField "printer", t_str
+        cobj_employee.Fill e_rec
+      End If
+
+      Set p_list = cobj_supr_list.contents
+      t_str = t_rec.GetField("x_supervisor_first") & " " & t_rec.GetField("x_supervisor_last")
+      t_int = p_list.FindFirstIndex(t_str)
+
+      If t_rec.GetField("x_supervisor_en") = 1 and t_int > -1 Then SUPERVISOR.SetSelected t_int
+      If t_rec.GetField("x_fax_en") = 1         Then FAX_NUMBER.Text = t_rec.GetField("x_fax")
+      If t_rec.GetField("x_mail_stop_en") = 1   Then MAIL_STOP.Text = t_rec.GetField("x_mail_stop")
+      If t_rec.GetField("x_labor_rate_en") = 1  Then txtLaborRate.Text = CLng(t_rec.GetField("x_labor_rate"))
+
+      If t_rec.GetField("x_act_supervisor") = 1 Then
+        If t_rec.GetField("x_act_supervisor") = 0 Then ACTING_SUPERVISOR.Value = False
+        If t_rec.GetField("x_act_supervisor") = 1 Then ACTING_SUPERVISOR.Value = True
+      End If
+
+      If t_rec.GetField("x_field_eng_en") = 1 Then
+        If t_rec.GetField("x_field_eng") = 0      Then FIELD_ENGINEER.Value = False
+        If t_rec.GetField("x_field_eng") = 1      Then FIELD_ENGINEER.Value = True
+      End If
+ 
+      If t_rec.GetField("x_allow_proxy_en") = 1 Then
+        If t_rec.GetField("x_allow_proxy") = 0    Then ALLOW_PROXY.Value = False
+        If t_rec.GetField("x_allow_proxy") = 1    Then ALLOW_PROXY.Value = True
+      End If
+
+      If t_rec.GetField("x_labor_rate_en") = 1 Then txtLaborRate.Text = t_rec.GetField("x_labor_rate")
+
+      If sci_installed Then 
+        'UNCOMMENT THE LINES IN THIS IF STATEMENT
+        't_str = t_rec.GetField("x_source_control")
+        'If t_rec.GetField("x_source_ctl_en") = 1 Then DDL_SCI.SetSelected t_str
+      End If
+  
+      If t_rec.GetField("x_biz_cal_en") = 1 Then
+        t_ret.Clear
+        t_ret.SimpleQuery         0, "wk_work_hr"
+        t_ret.AppendFilter        0, "title", cbEqual, t_rec.GetField("x_biz_cal_title")
+
+        If e_rec.GetField("objid") <> 0 Then
+          t_ret.SetRoot             e_rec
+          t_ret.TraverseFromRoot    1, "empl_hrs2biz_cal_hdr"
+          t_ret.TraverseFromParent  2, "biz_cal_hdr2biz_cal", 1
+          t_ret.TraverseFromParent  3, "biz_cal2wk_work_hr",  2
+        End If
+        t_ret.RetrieveRecords
+
+        If e_rec.GetField("objid") <> 0 Then
+          ret_val = msg_box("Do you want to update the business calendar for this employee to the workgroup default?", "Workgroup Business Calendar", 4)
+          If ret_val = 2 Then
+            Set t_list = t_ret.GetRecordList(1)         
+            If t_list.count <> 0 Then
+              Set bz_hdr_rec = t_list.ItemByIndex (0)   'get existing biz_cal_hdr for the employee
+            Else                                        ' - or - 
+              bz_hdr_rec.RecordType = "biz_cal_hdr"     'create a new biz_cal_hdr for the employee
+            End If
+
+            Set t_list = t_ret.GetRecordList(2)
+            If t_list.count <> 0 Then
+              Set bizcal_rec = t_list.ItemByIndex (0)   'get existing biz_cal for the employee
+            Else                                        ' - or - 
+              bizcal_rec.RecordType = "biz_cal"         'create a new biz_cal for the employee
+            End If
+
+            Set t_list = t_ret.GetRecordList(3)         'check to make sure same record does not 
+            If t_list.count <> 0 Then                   'already exist with same effective date
+              Set wk_rec = t_list.ItemByIndex (0)
+              If wk_rec.GetField("title") = t_rec.GetField("x_biz_cal_title") And _
+                 t_rec.GetField("x_biz_cal_eff_today") = 1     And _
+                 t_rec.GetField("x_bizcal_eff_date_en") = 1    And _
+                 IsDate(t_rec.GetField("x_bizcal_start_date")) And _
+                 bizcal_rec.GetField("effective_date") = t_rec.GetField("x_bizcal_start_date") Then
+                 Exit Sub
+              End If
+            End If
+
+            Set t_list = t_ret.GetRecordList(0)         'get wk_work_hr record for new biz_cal
+            If t_list.count <> 0 Then
+              Set wk_rec = t_list.ItemByIndex (0)
+            Else
+              Exit Sub
+            End If
+            
+            If t_rec.GetField("x_biz_cal_eff_today") = 0 Or _
+               t_rec.GetField("x_bizcal_eff_date_en") = 0 Then
+                bizcal_rec.SetField "effective_date", App.CurrentDate
+            Else 
+              If IsDate(t_rec.GetField("x_bizcal_start_date")) Then
+                bizcal_rec.SetField "effective_date", t_rec.GetField("x_bizcal_start_date")
+              Else
+                bizcal_rec.SetField "effective_date", App.CurrentDate
+              End If
+            End If
+
+            t_save.UpdateRecord wk_rec
+            t_save.InsertRecord bizcal_rec
+            If bz_hdr_rec.GetField("objid") <> 0 Then
+              t_save.UpdateRecord bz_hdr_rec
+            Else
+              t_save.InsertRecord bz_hdr_rec
+            End If
+            t_save.UpdateRecord e_rec
+
+            t_save.RelateRecords wk_rec, bizcal_rec,     "wk_work_hr2biz_cal"
+            t_save.RelateRecords bizcal_rec, bz_hdr_rec, "biz_cal2biz_cal_hdr"
+            t_save.RelateRecords bz_hdr_rec, e_rec,      "biz_cal_hdr2empl_hrs"
+
+            t_save.Save                        
+          End If
+        End If
+      End If
+    End If
+  End If
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Modify Click
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub MODIFY_click()
+  me.dodefault
+
+  link_emp_to_res_cfg
+End Sub
+
+Public Sub NOTIFIER_Click()
+  If local_emp_rec Is Not Nothing Then
+    cobj_employee.fill local_emp_rec
+  End If
+
+  Set move_emp_rec = Cobj_EMPLOYEE.Contents
+
+  Me.DoDefault
+End Sub
+
+Public Sub Message(ByVal num As Long, ByVal info As String)
+  Select Case num
+    Case cbFirstMessage + 1
+      Set local_emp_rec = move_emp_rec.Copy
+      Set move_emp_rec = Nothing
+    Case Else
+      Me.DoDefault
+  End Select
+End Sub
+
+Public Sub Form_Save3(t_save As BulkSave)
+  Dim my_db As SQLDB
+  Dim e_rec As Record
+  Dim t_list As New List
+  Dim tmpReturnStatus As Integer
+  
+  If t_save.CountByType("employee") > 0 Then
+     If local_emp_rec Is Not Nothing Then
+        Set e_rec = t_save.GetRecordByIndex(0, "employee")
+
+'moved to global routine
+'       Set my_db = New SQLDB
+'       my_db.Execute "update table_employee set normal_biz_high = '" & local_emp_rec.GetField("normal_biz_high") & _
+'         "', normal_biz_mid = '" & local_emp_rec.GetField("normal_biz_mid") & "', normal_biz_low = '" & _
+'         local_emp_rec.GetField("normal_biz_low") & "', after_biz_high = '" & local_emp_rec.GetField("after_biz_high") & _
+'         "', after_biz_mid = '" & local_emp_rec.GetField("after_biz_mid") & "', after_biz_low = '" & _
+'         local_emp_rec.GetField("after_biz_low") & "' where objid = " & e_rec.GetField("objid")
+        t_list.ItemType = "record"            'added for global version
+        t_list.AppendItem e_rec               'added for global version
+        t_list.AppendItem local_emp_rec       'added for global version
+'       update_employee t_list                'added for global version
+        tmpReturnStatus = App.CallCB("update_employee t_list")
+     End If  
+  End If
+End Sub

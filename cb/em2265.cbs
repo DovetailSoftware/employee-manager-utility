@@ -1,0 +1,647 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        : Employee Manager Form 2265
+'
+' Series         : First Choice Administration Series(tm)
+'
+' Name           : fc2265.cbs
+'
+' Description    : Allows for workgroup record to be modified
+'
+' Author         : First Choice Software, Inc.
+'                  4412 Spicewood Springs Road
+'                  Suite 701
+'                  Austin, TX  78759
+'                  (512) 418-2905
+'                  EMAIL: support@fchoice.com
+'                  www.fchoice.com
+'
+' Platforms      : This version supports Clarify 4.0 and later
+'
+' Copyright (C)  1999 First Choice Software, Inc.
+' All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'   Functional Declarations
+'
+' Copyright (C) 1999. First Choice Software, Inc. All Rights Reserved
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Option Explicit
+' Global Variables
+'
+Global locale        As String          'global variables
+Global pass_var      As Integer
+Dim sci_installed    As Boolean
+Private GridSelectedIndex as Integer
+Private GridSelectedIndexesList as List   'List of selected indexes in grid
+
+' Form ID's
+'
+Const TAB_MEM_DATA%   = 2266
+Const TAB_LOCALE%     = 2267
+Const TAB_PRIVILEGE%  = 2268
+Const TAB_NOTIFY%     = 2269
+Const TAB_QUEUES%     = 2271
+Const TAB_MEMBERS%    = 2272
+Const TAB_BIZ_CAL%    = 2274
+
+' Message values
+'
+Const MSG_FIRST_EMP_MAN   = CBFirstMessage + 3000
+Const MSG_ENA_DEFAULTS    = MSG_FIRST_EMP_MAN + 0 'enable "set default" chkboxes
+Const MSG_DISA_DEFAULTS   = MSG_FIRST_EMP_MAN + 1 'disable "set default" chkboxes
+Const MSG_DATA_CHANGED    = MSG_FIRST_EMP_MAN + 2 'cobj_recWrkgrpDef data changed
+Const MSG_DATA_CLEARED    = MSG_FIRST_EMP_MAN + 3 'disable the replace button on main form
+Const MSG_DATA_REFRESH    = MSG_FIRST_EMP_MAN + 4 'click the list button and refresh the clb
+
+Declare Sub cmdClear_click()
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Declare external functions
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Sub get_strings(start_val As Long, _
+                               num_strings As Integer, _
+                               locale As String, _
+                               application As String, _
+                               ret_strings As List)
+
+Declare Public Function get_sprintf(str_num As Long, locale As String, application As String, _
+                                    Optional arg1 As Variant, Optional arg2 As Variant, _
+                                    Optional arg3 As Variant, Optional arg4 As Variant, _
+                                    Optional arg5 As Variant, Optional arg6 As Variant) As String
+
+Declare Function msg_box(the_text As String, the_caption As String, the_type As Integer) As Integer
+Declare Sub UpdateEmployee(rec_workgroup as Record,emp_objid as Long)
+Declare Sub UpdateEmployeeList(rec_workgroup as Record,emp_objid_list as List,UpdateQueues as Boolean)
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Form_Load()
+  Dim query         As New SQLDB        'SQL Query object
+  Dim ret_str       As String           'return string
+  Dim ret_strings   As New List         'list for control strings
+  Dim sql_str       As String           'sql string
+  Dim t_rec         As New Record       'temp records
+
+  me.dodefault
+
+  get_strings 13899, 7, locale, "", ret_strings
+  me.caption                    = ret_strings.ItemByIndex(1)
+  cmdFilterFind.caption         = ret_strings.ItemByIndex(2)
+  cmdAdd.caption                = ret_strings.ItemByIndex(3)
+  cmdReplace.caption            = ret_strings.ItemByIndex(4)
+  cmdClear.caption              = ret_strings.ItemByIndex(5)
+  ctl_Close.caption             = ret_strings.ItemByIndex(6)
+  cmdDelete.caption             = ret_strings.ItemByIndex(0)
+
+                    ' use the replace button as a dirty data indicator
+  cmdReplace.enabled = FALSE
+  cmdDelete.enabled = FALSE
+                    ' fill contextual objects with 0's
+
+  sql_str = "select field_name from adp_sch_info where field_name = '" + "x_sci_ext_app" + "'"
+  query.Select sql_str, ret_str
+  If Len(ret_str) > 0 Then 
+    sci_installed = True
+  End If
+  
+  t_rec.RecordType = "empl_user"                    
+  cobj_supervisor.Fill t_rec
+  t_rec.RecordType = "site_view"                    
+  cobj_site.Fill t_rec
+  t_rec.RecordType = "workgroup"
+  cobj_recWrkgrpDef.Fill t_rec
+
+Dim empty_list as New List
+Cobj_los_sel_emp.Fill empty_list
+Cobj_los_avail_emp.Fill empty_list
+empty_list.ItemType = "record"
+cobj_lor_avail_emp.Fill empty_list
+cobj_lor_sel_emp.Fill empty_list
+
+'  cbx_cbxSelWorkgroup.AppendDefaultSort "alpha", "work_group", "Ascending"
+
+  cmdClear_click
+'  TAB_D_2274.value = TRUE
+'  TAB_D_2271.value = TRUE
+'  TAB_D_2266.value = TRUE
+'  pass_var = 0
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Close button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub close_click()
+  Dim retVal        As Integer          'function return value
+
+  If cmdReplace.enabled = TRUE Then
+    retVal = msg_box(get_sprintf(13980, locale, ""),get_sprintf(13981, locale, ""),6)
+    If retVal = 1 Then
+      Exit Sub
+    End If
+    If retVal = 7 Then
+      cmdReplace.Value = 1
+    End If
+  End If
+  Me.Close
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Delete Button Pressed
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdDelete_Click()
+  Dim ret_val As Integer                ' Result of question
+  Dim wg_rec  As Record                 ' Workgroup record to delete
+  Dim t_save  As New BulkSave           ' Structure to delete data
+
+                                        ' Ask if they're sure. If not, exit
+  ret_val = msg_box(get_sprintf(13996, locale, ""),get_sprintf(13981, locale, ""),4)
+  If ret_val = 3 Then Exit Sub
+  
+                                        ' Get record and delete it
+  Set wg_rec = grdWorkGroup.Selected
+  t_save.DeleteRecord wg_rec
+  t_save.Save
+  
+                                        ' Clear reset button and 
+                                        '  find the rest of the data
+  cmdReplace.Enabled = False
+  cmdFilterFind.Value = True
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Find Button Pressed
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdFilterFind_Click()
+  Dim retVal As Integer                 ' Return from question
+  
+                                        ' If data dirty, see if they
+                                        '  want to save it first
+  If cmdReplace.enabled = TRUE Then
+     retVal = msg_box(get_sprintf(13980, locale, ""),get_sprintf(13981, locale, ""),6)
+     If retVal = 1 Then
+        Exit Sub
+     End If
+     If retVal = 7 Then
+        cmdReplace.Value = 1
+     End If
+  End If
+  
+                                        
+                                        ' Do the find
+                                        ' Turn off buttons and clear
+                                        '  data dirty flag
+  Me.DoDefault
+  cmdDelete.Enabled = False
+  Me.DataChanged = False
+  cmdReplace.Enabled = False
+ Cobj_lorWorkgroup.Sort "work_group"
+End Sub
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Workgroup selection from grid
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub grdWorkgroup_click()
+  Dim ae_list       As New List         'list for act_entry records
+  Dim i             As Integer          'loop integer
+  Dim retVal        As Integer          'function return value
+  Dim se_list       As New List         'list for select employee ddl
+  Dim t_list        As List             'temp record list
+  Dim t_rec         As New Record       'temp records
+  Dim t_ret         As New BulkRetrieve 'bulkretrieve area
+  Dim aq_list       As New List         'list for avail queue records
+  Dim sq_list       As New List         'list for selected queue records
+  Dim wg_rec        As New Record       'workgroup record
+
+
+  If cmdReplace.enabled = TRUE Then
+    retVal = msg_box(get_sprintf(13994, locale, ""),get_sprintf(13981, locale, ""),6)
+'    If retVal = 1 Then
+'      Exit Sub
+'    End If
+    If retVal = 7 Then
+       grdWorkgroup.SetSelected GridSelectedIndexesList
+      cmdReplace.Value = 1
+
+      Exit Sub
+    End If
+  End If
+
+                                       'Save the index of the currently selected item
+  Set GridSelectedIndexesList = grdWorkgroup.SelectedIndexes
+
+ 
+ Set wg_rec = grdWorkgroup.Selected
+ If wg_rec.RecordType <> "workgroup" Then 
+                                       'If they've clicked on the adhoc row, make the form 
+                                       'and its tabs read-only & exit
+    Dim w_list        As New List         'workgroup list
+    Dim w_rec         As New Record       'workgroup records
+
+                                       ' Clear the contextual object which
+                                       ' feeds data to the tabs. Send msgs to the tabs to disable and clear default
+                                       ' settings as needed.
+    w_rec.RecordType = "workgroup"
+    cobj_recWrkgrpDef.Fill w_rec
+    w_list.ItemType = "record"
+    cobj_LOR_sel_queue.fill w_list
+    cobj_LOR_avail_queue.fill w_list
+    cobj_LOR_sel_emp.fill w_list
+    cobj_LOR_avail_emp.fill w_list
+
+    Me.NotifyById TAB_MEM_DATA,  MSG_DISA_DEFAULTS, ""
+    Me.NotifyById TAB_LOCALE,    MSG_DISA_DEFAULTS, ""
+    Me.NotifyById TAB_PRIVILEGE, MSG_DISA_DEFAULTS, ""
+    Me.NotifyById TAB_NOTIFY,    MSG_DISA_DEFAULTS, ""
+    Me.NotifyById TAB_BIZ_CAL,   MSG_DISA_DEFAULTS, ""
+    Me.NotifyById TAB_QUEUES,    MSG_DISA_DEFAULTS, ""
+    Me.NotifyById TAB_MEMBERS,   MSG_DISA_DEFAULTS, ""
+    Exit Sub
+ End If
+
+
+                    ' set up the contextual object for the supervisor.
+                    '
+                    ' when a selection is made if default supervisor is enabled,
+                    ' use the name and load the supervisor contextual object.
+                    '
+                    ' if default supervisor is not enabled, fill cobj_supervisor with empty record
+                    ' this is required before we modify the text boxes tied to the cobj
+  t_ret.SimpleQuery        0, "empl_user"
+  t_ret.AppendFilter       0, "first_name", cbEqual, wg_rec.GetField("x_supervisor_first")
+  t_ret.AppendFilter       0, "last_name",  cbEqual, wg_rec.GetField("x_supervisor_last")
+  t_ret.SimpleQuery        1, "site_view"
+  t_ret.AppendFilter       1, "objid",      cbEqual, wg_rec.GetField("x_site_objid")
+  t_ret.SimpleQuery        2, "wk_work_hr"
+  t_ret.AppendFilter       2, "title",      cbEqual, wg_rec.GetField("x_biz_cal_title")
+  t_ret.SimpleQuery        3, "workgroup"
+  t_ret.AppendFilter       3, "objid",      cbEqual, wg_rec.GetField("objid")
+  t_ret.TraverseFromParent 4, "workgroup2queue", 3
+  t_ret.SimpleQuery        5, "employee"
+  t_ret.AppendFilter       5, "work_group", cbEqual, wg_rec.GetField("work_group")
+  t_ret.RetrieveRecords
+
+  Set t_list = t_ret.GetRecordList(3)                   'refresh workgroup record from database version
+  If t_list.count > 0 Then
+    cobj_recWrkgrpDef.Fill t_list.ItemByIndex(0)
+  End If
+
+  If wg_rec.GetField("x_supervisor_en") = 1 And _       'if supervisor enabled, fill in record
+    (wg_rec.GetField("x_supervisor_first") > "" Or wg_rec.GetField("x_supervisor_last") > "") Then
+     Set t_list = t_ret.GetRecordList(0)
+     If t_list.count > 0 Then
+       cobj_supervisor.Fill t_list.ItemByIndex(0)
+     Else
+       retVal = msg_box(get_sprintf(13982, locale, ""),get_sprintf(13981, locale, ""),0)
+       GoTo init_cobj
+     End If
+  Else
+init_cobj:                                              'if we don't fill the record, set its type
+    wg_rec.SetField "x_supervisor_en", 0
+    cobj_recWrkgrpDef.Fill wg_rec
+    Set t_rec = New Record
+    t_rec.RecordType = "empl_user"
+    cobj_supervisor.Fill t_rec
+  End If
+
+  If wg_rec.GetField("x_site_name_en") = 1 Then         'if site_name enabled, fill in record
+    Set t_list = t_ret.GetRecordList(1)
+    If t_list.count > 0 Then
+      cobj_site.Fill t_list.ItemByIndex(0)
+    Else
+      retVal = msg_box(get_sprintf(13983, locale, ""),get_sprintf(13981, locale, ""),0)
+      GoTo init_cobj2
+    End If
+  Else
+init_cobj2:                                             'if we don't fill the record, set its type
+    Set t_rec = New Record
+    t_rec.RecordType = "site_view"
+    cobj_site.Fill t_rec
+  End If
+
+  If wg_rec.GetField("x_biz_cal_en") = 1 Then           'if biz_cal enabled, fill in record
+    Set t_list = t_ret.GetRecordList(2)
+    If t_list.count > 0 Then
+      cobj_bizcal.Fill t_list.ItemByIndex(0)
+    Else
+      retVal = msg_box(get_sprintf(13984, locale, ""),get_sprintf(13981, locale, ""),0)
+      GoTo init_cobj3
+    End If
+  Else
+init_cobj3:                                             'if we don't fill the record, set its type
+    Set t_rec = New Record
+    t_rec.RecordType = "wk_work_hr"
+    cobj_bizcal.Fill t_rec
+  End If
+
+
+  aq_list.ItemType = "record"                           'fill in available queue dropdown list
+  cobj_LOR_avail_queue.Fill aq_list
+
+  sq_list.ItemType = "record"                           'fill in selected queue dropdown list
+  Set t_list = t_ret.GetRecordList(4)
+  For i = 0 to t_list.Count - 1
+    Set t_rec = t_list.ItemByIndex (i)
+    sq_list.AppendItem t_rec
+  Next i
+  sq_list.Sort "title"
+  cobj_LOR_sel_queue.fill sq_list
+
+  ae_list.clear
+  ae_list.ItemType = "record"                           'fill in available employee dropdown list
+  cobj_LOR_avail_emp.Fill ae_list
+  
+  se_list.clear
+  se_list.ItemType = "record"                           'fill in selected employee dropdown list
+  Set t_list = t_ret.GetRecordList(5)
+  For i = 0 to t_list.Count - 1
+    Set t_rec = t_list.ItemByIndex (i)
+    se_list.AppendItem t_rec
+  Next i
+  se_list.Sort "last_name", 0, "first_name"
+  cobj_LOR_sel_emp.fill se_list
+
+  Set t_list = t_ret.GetRecordList(3)                   'refresh workgroup record from database version
+  If t_list.count > 0 Then
+    cobj_recWrkgrpDef.Fill t_list.ItemByIndex(0)
+  End If
+
+  'now that a workgroup is selected, enable the checkboxes for the defaults
+  Me.NotifyById TAB_MEM_DATA,  MSG_ENA_DEFAULTS, ""
+
+  Me.NotifyById TAB_LOCALE,    MSG_ENA_DEFAULTS, ""
+  Me.NotifyById TAB_PRIVILEGE, MSG_ENA_DEFAULTS, ""
+  Me.NotifyById TAB_NOTIFY,    MSG_ENA_DEFAULTS, ""
+  Me.NotifyById TAB_BIZ_CAL,   MSG_ENA_DEFAULTS, ""
+  Me.NotifyById TAB_QUEUES,    MSG_ENA_DEFAULTS, ""
+  Me.NotifyById TAB_MEMBERS,   MSG_ENA_DEFAULTS, ""
+
+  
+  cmdDelete.Enabled = True
+
+End Sub
+
+Sub grdWorkgroup_DblClick()
+  
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Add button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdAdd_click()
+  Dim new_form As New Form     
+  Dim retVal As Integer
+
+                                        ' If old data dirty, see
+                                        '  if they want to save it  
+  If cmdReplace.enabled = TRUE Then
+     retVal = msg_box(get_sprintf(13980, locale, ""),get_sprintf(13981, locale, ""),6)
+     If retVal = 1 Then
+        Exit Sub
+     End If
+     If retVal = 7 Then
+        cmdReplace.Value = 1
+     End If
+  End If
+  cmdReplace.Enabled = False
+                               
+  new_form.Show 2273, cbFrontIfUp
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Replace button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdReplace_click()
+                    ' update the current record in table "workgroup" with the data which has
+                    ' been modified on this form
+  Dim br             as New BulkRetrieve 'Query Structure for employees
+  Dim bs             as New BulkSave     'For saving the workgroup changes
+  Dim emp_list       as List             'List of employees
+  Dim ret_int        as Integer          'Result of Message Box
+  Dim emp_objid_list as New List         'List of employee objids
+  Dim rec_workgroup  as Record           'Workgroup Record
+  Dim GridIndex      As Integer          'Location of this workgroup in the grid
+  Dim t_list         as List             'Temporary List
+  Dim retVal         as Integer          'Return Variable from msg box
+  Dim sup_rec        as record           'Supervisor record
+  Dim brQueue        as New BulkRetrieve 'Query for queues
+  Dim CurrentQueueList as List           'List of queue records stored in DB for this workgroup
+  Dim CurrentQueueTitleList as New List  'List of queue titles stored in DB for this workgroup
+  Dim SelectedQueueGridTitleList as New List 'List of queue titles in selected queues grid
+  Dim SelectedQueueGridList as List      'List of queue records in selected queues grid
+  Dim q_counter      as Integer          'Loop counter
+  Dim rec_queue      as Record           'Queue Record
+  Dim UpdateQueues   as Boolean          'Do we need to update the queues for this workgroup?
+  UpdateQueues = False                   'Assume No
+
+                                       'Get the Workgroup Data
+    Set rec_workgroup = cobj_recWrkgrpDef.Contents
+                                       'Find where it is in the Grid
+    Set t_list = grdWorkgroup.SelectedIndexes
+    GridIndex = t_list.ItemByIndex(0)
+                                       'Validation
+    If rec_workgroup.GetField("x_site_name_en") = 1 Then        'if site_name enabled, the site must be selected
+      If Len(rec_workgroup.GetField("x_site_name")) = 0 Then
+'       msgbox "Site must be selected if Site Name/Id is enabled."
+        retVal = msg_box(get_sprintf(13988, locale, ""),get_sprintf(13990, locale, ""),0)
+        Exit Sub
+      End If
+    End If
+
+    If rec_workgroup.GetField("x_biz_cal_en") = 1 Then          'if biz_cal enabled, the biz_cal must be selected
+      If Len(rec_workgroup.GetField("x_biz_cal_title")) = 0 Then
+'       msgbox "Business Calendar must be selected if Business Calendar is enabled."
+        retVal = msg_box(get_sprintf(13989, locale, ""),get_sprintf(13990, locale, ""),0)
+        Exit Sub
+      End If
+    End If
+
+    If rec_workgroup.GetField("x_supervisor_en") = 1 Then       'if supervisor enabled, the emp must be acting supervisor
+      Set sup_rec = cobj_supervisor.Contents
+      If sup_rec.GetField("acting_super") = 0 Then
+'       msgbox "Supervisor selected must be able to be an acting supervisor."
+        retVal = msg_box(get_sprintf(13995, locale, ""),get_sprintf(13990, locale, ""),0)
+        Exit Sub
+      End If
+    End If
+                                       'If we're still here, validation was successful
+                                       'Update the Workgroup Record
+    If rec_workgroup.GetField("x_online_priv_en") = 0 Then rec_workgroup.SetField "x_online_priv", ""
+    If rec_workgroup.GetField("x_offline_priv_en") = 0 Then rec_workgroup.SetField "x_offline_priv", ""
+    bs.UpdateRecord rec_workgroup
+
+                                       'Update the list of queues for this workgroup 
+                                       'Get the current list of queues for this workgroup
+    brQueue.SetRoot rec_workgroup
+    brQueue.TraverseFromRoot 0, "workgroup2queue"
+    brQueue.RetrieveRecords
+    Set CurrentQueueList = brQueue.GetRecordList(0)
+    CurrentQueueTitleList.ItemType = "string"
+    CurrentQueueList.ExtractList CurrentQueueTitleList, "title"
+
+                                       'Get the list of queues in the selected queues grid
+    Set SelectedQueueGridList = Cobj_LOR_sel_queue.Contents
+    SelectedQueueGridTitleList.ItemType = "string"
+    SelectedQueueGridList.ExtractList SelectedQueueGridTitleList, "title"
+
+                                       'See if the user has added any queues to this workgroup
+    For q_counter = 0 to SelectedQueueGridTitleList.Count - 1
+      If Not CurrentQueueTitleList.Contains(SelectedQueueGridTitleList.ItemByIndex(q_counter)) Then
+                                       'This queue has been added, so relate it to the workgroup
+                                       'Get the Full queue record
+        UpdateQueues = True
+        Set rec_queue = SelectedQueueGridList.ItemByIndex(q_counter)
+        bs.RelateRecords rec_workgroup,rec_queue,"workgroup2queue"
+      End If
+    Next q_counter
+
+                                       'See if the user has removed any queues for this workgroup
+    For q_counter = 0 to CurrentQueueTitleList.Count - 1
+      If Not SelectedQueueGridTitleList.Contains(CurrentQueueTitleList.ItemByIndex(q_counter)) Then
+                                       'This queue has been deleted from the grid, so un-relate it to the workgroup
+                                        'Get the Full queue record
+        UpdateQueues = True
+        Set rec_queue = CurrentQueueList.ItemByIndex(q_counter)
+        bs.UnRelateRecords rec_workgroup,rec_queue,"workgroup2queue"
+      End If
+    Next q_counter
+
+                                       'Commit changes to the DB
+                                       'Update the Record in the Grid
+    bs.Save
+    grdWorkgroup.ReplaceItem rec_workgroup, GridIndex
+'    grdWorkgroup.Refresh
+                                       'Get the members of this workgroup
+    br.SimpleQuery 0, "employee"
+    br.AppendFilter 0, "work_group", cbEqual, rec_workgroup.GetField("work_group")
+    br.RetrieveRecords
+    Set emp_list = br.GetRecordList(0)
+    
+                                       'If we have any, ask the user if they 
+                                       'would like to propagate the changes
+                                       'If we dont have any members, or if the
+                                       'user doesn't want to propagate changes,
+                                       'then we have nothing more to do.
+    If emp_list.Count > 0 Then
+    ret_int = msg_box(get_sprintf(13992, locale, ""),get_sprintf(13991, locale, ""),4)
+'      ret_int = App.MsgBox("Propagate changes?",cbYesNo,"Propagate Changes?")
+      If ret_int = 2 Then '2 = Yes
+                                       'Build a list of objids
+                                       'Call the List ver of UpdateEmployee Sub
+        emp_objid_list.ItemType = "long"     
+        emp_list.ExtractList emp_objid_list,"objid"
+        Call UpdateEmployeeList(rec_workgroup,emp_objid_list,UpdateQueues)
+      End If      
+    End If
+                                       'Disable the Replace Button
+   cmdReplace.enabled = FALSE
+End Sub
+
+
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Clear button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdClear_click()
+  Dim w_list        As New List         'workgroup list
+  Dim w_rec         As New Record       'workgroup records
+
+                    ' Unselect anything selected in the grid. Clear the contextual object which
+                    ' feeds data to the tabs. Send msgs to the tabs to disable and clear default
+                    ' settings as needed.
+  grdWorkgroup.Unselect
+  w_rec.RecordType = "workgroup"
+  cobj_recWrkgrpDef.Fill w_rec
+  w_list.ItemType = "record"
+  cobj_LOR_sel_queue.fill w_list
+  cobj_LOR_avail_queue.fill w_list
+  cobj_LOR_sel_emp.fill w_list
+  cobj_LOR_avail_emp.fill w_list
+
+  Me.NotifyById TAB_MEM_DATA,  MSG_DISA_DEFAULTS, ""
+  Me.NotifyById TAB_LOCALE,    MSG_DISA_DEFAULTS, ""
+  Me.NotifyById TAB_PRIVILEGE, MSG_DISA_DEFAULTS, ""
+  Me.NotifyById TAB_NOTIFY,    MSG_DISA_DEFAULTS, ""
+  Me.NotifyById TAB_BIZ_CAL,   MSG_DISA_DEFAULTS, ""
+  Me.NotifyById TAB_QUEUES,    MSG_DISA_DEFAULTS, ""
+  Me.NotifyById TAB_MEMBERS,   MSG_DISA_DEFAULTS, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Message Handler
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Message(ByVal msgNum as Long, ByVal msgStr as String)
+
+  Select Case msgNum
+    Case MSG_DATA_CHANGED
+      cmdReplace.enabled = TRUE
+    Case MSG_DATA_CLEARED
+      cmdReplace.enabled = FALSE
+    Case MSG_DATA_REFRESH
+      cmdFilterFind.Value = True
+     cmdClear.Value = 1
+    Case 2272
+      pass_var = 1
+      Call cmdReplace_click
+    Case cbCloseMessage
+      Call close_click
+    Case Else
+      Me.DoDefault
+  End Select
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Members Tab Click
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub TAB_D_2272_Click()
+Dim retval as Integer
+                                       'If workgroup data is dirty, dont allow membership changes
+                                       'Post a Save/Discard/Cancel Message Box  
+  If cmdReplace.enabled = TRUE Then
+     'app.msgbox "Workgroup data has changed. Save or Discard before modifying membership."
+     retval = msg_box(get_sprintf(13998, locale, ""), get_sprintf(13981, locale, ""), 6)
+
+     Select Case retval
+       Case 7                          'Save
+                                       'Press the Replace Button
+                                       'If the validation failed, the form will still be dirty
+                                       'so select the default tab
+                                       'Else, the save was successful, so do nothing
+         cmdReplace.Value = 1
+         If cmdReplace.Enabled Then
+           TAB_D_2266.Value = 1              
+         End If
+       Case 8                          'Discard
+         cmdClear.Value = 1
+       Case Else                       'Cancel
+                                       'Select the Default Tab
+         TAB_D_2266.Value = 1  
+     End Select
+  End If
+End Sub
+
+

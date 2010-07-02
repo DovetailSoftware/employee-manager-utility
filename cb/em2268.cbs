@@ -1,0 +1,205 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        : Employee Manager Form 2268
+'
+' Series         : First Choice Administration Series(tm)
+'
+' Name           : fc2268.cbs
+'
+' Description    : Allows for workgroup record privilege defaults to be updated
+'
+' Author         : First Choice Software, Inc.
+'                  4412 Spicewood Springs Road
+'                  Suite 701
+'                  Austin, TX  78759
+'                  (512) 418-2905
+'                  EMAIL: support@fchoice.com
+'                  www.fchoice.com
+'
+' Platforms      : This version supports Clarify 4.0 and later
+'
+' Copyright (C)  1999 First Choice Software, Inc.
+' All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'   Functional Declarations
+'
+' Copyright (C) 1999. First Choice Software, Inc. All Rights Reserved
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'PRIVILEGE TAB
+
+Option Explicit
+' Global Variables
+'
+Global locale As String   'global variables
+
+' Form ID's
+'
+Const FRM_WRKGRP_MAIN%    = 2265
+
+Const MSG_FIRST_EMP_MAN   = CBFirstMessage + 3000
+Const MSG_ENA_DEFAULTS    = MSG_FIRST_EMP_MAN + 0 'enable "set default" chkboxes
+Const MSG_DISA_DEFAULTS   = MSG_FIRST_EMP_MAN + 1 'disable "set default" chkboxes
+Const MSG_DATA_CHANGED    = MSG_FIRST_EMP_MAN + 2 'cobj_recWrkgrpDef data changed
+Const MSG_DATA_CLEARED    = MSG_FIRST_EMP_MAN + 3 'disable the replace button on main form
+
+Declare Sub load_priv_ddl()
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Declare external functions
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Sub get_strings(start_val As Long, _
+                               num_strings As Integer, _
+                               locale As String, _
+                               application As String, _
+                               ret_strings As List)
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Form_Load()
+  Dim ret_strings As New List           'list for control strings
+
+  me.dodefault
+
+  get_strings 13923, 3, locale, "", ret_strings
+  lblDefault.caption                 = ret_strings.ItemByIndex(0)
+  chkOnline.caption                  = ret_strings.ItemByIndex(1)
+  chkOffline.caption                 = ret_strings.ItemByIndex(2)
+
+  load_priv_ddl
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Load privilege DDL objects
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub load_priv_ddl()
+  Dim i        As Integer               'loop integer
+  Dim on_list  As New List              'online priv list
+  Dim off_list As New List              'offline priv list
+  Dim t_list   As List                  'temp record list
+  Dim t_rec    As Record                'temp record 
+  Dim t_ret    As New BulkRetrieve      'bulkretrieve area
+  Dim t_str    As String                'temp string4
+
+  on_list.ItemType = "string"           'set list types
+  off_list.ItemType = "string"
+  t_ret.SimpleQuery 0, "privclass"      'get priv classes
+  t_ret.RetrieveRecords
+  
+  Set t_list = t_ret.GetRecordList(0)   'load privilege class list
+  for i = 0 to t_list.count - 1         'fill online privilege class dropdown list
+    Set t_rec = t_list.ItemByIndex(i)
+    If t_rec.GetField("access_type") = 0 Then
+      t_str = t_rec.GetField("class_name")
+      on_list.AppendItem t_str
+    End If
+  next i
+  on_list.Sort
+  cobj_losOnlinePriv.Fill on_list
+
+  for i = 0 to t_list.count - 1         'fill online privilege class dropdown list
+    Set t_rec = t_list.ItemByIndex(i)
+    If t_rec.GetField("access_type") = 1 Then
+      t_str = t_rec.GetField("class_name")
+      off_list.AppendItem t_str
+    End If
+  next i
+  off_list.Sort
+  cobj_losOfflinePriv.Fill off_list
+End Sub 
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' CheckBox - Online Priveleges
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkOnline_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkOnline.value = TRUE Then
+    ddlOnlinePriv.enabled = TRUE
+  Else
+    ddlOnlinePriv.enabled = FALSE
+  End If
+End Sub
+    
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' dropdown list - Online Priveleges
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddlOnlinePriv_Click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' CheckBox - Offline Priveleges
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkOffline_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkOffline.value = TRUE Then
+    ddlOfflinePriv.enabled = TRUE
+  Else
+    ddlOfflinePriv.enabled = FALSE
+  End If
+End Sub
+    
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' dropdown list - Offline Priveleges
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddlOfflinePriv_Click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Message Handler
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Message(ByVal msgNum as Long, ByVal msgStr as String)
+  Select Case msgNum
+    Case MSG_ENA_DEFAULTS
+      chkOnline.enabled = TRUE
+      chkOffline.enabled = TRUE
+'      Me.Refresh
+      chkOnline_click
+
+                    ' since we only enable defaults when initializing data,
+                    ' disable the 'Replace' button (it is used as a data dirty indicator)
+      Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CLEARED, ""
+    
+    Case MSG_DISA_DEFAULTS
+      If chkOnline.value = TRUE Then
+        chkOnline.value = FALSE
+      End If
+      chkOnline_click
+      chkOnline.enabled = FALSE
+
+      If chkOffline.value = TRUE Then
+        chkOffline.value = FALSE
+      End If
+      chkOffline_click
+      chkOffline.enabled = FALSE
+                    ' disable the replace button
+      Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CLEARED, ""
+
+    Case Else
+      Me.DoDefault
+  End Select
+End Sub     

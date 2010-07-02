@@ -1,0 +1,315 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        : Employee Manager Form 2267
+'
+' Series         : First Choice Administration Series(tm)
+'
+' Name           : fc2267.cbs
+'
+' Description    : Allows for workgroup record locale defaults to be updated
+'
+' Author         : First Choice Software, Inc.
+'                  4412 Spicewood Springs Road
+'                  Suite 701
+'                  Austin, TX  78759
+'                  (512) 418-2905
+'                  EMAIL: support@fchoice.com
+'                  www.fchoice.com
+'
+' Platforms      : This version supports Clarify 4.0 and later
+'
+' Copyright (C)  1999 First Choice Software, Inc.
+' All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'   Functional Declarations
+'
+' Copyright (C) 1999. First Choice Software, Inc. All Rights Reserved
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Option Explicit
+' Global Variables
+'
+Global locale As String   'global variables
+
+' Form ID's
+'
+Const FRM_WRKGRP_MAIN%    = 2265
+
+Const MSG_FIRST_EMP_MAN 	= CBFirstMessage + 3000
+Const MSG_ENA_DEFAULTS		= MSG_FIRST_EMP_MAN + 0	'enable "set default" chkboxes
+Const MSG_DISA_DEFAULTS		= MSG_FIRST_EMP_MAN + 1 'disable "set default" chkboxes
+Const MSG_DATA_CHANGED    = MSG_FIRST_EMP_MAN + 2 'cobj_recWrkgrpDef data changed
+Const MSG_DATA_CLEARED    = MSG_FIRST_EMP_MAN + 3 'disable the replace button on main form
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Declare external functions
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Sub get_strings(start_val As Long, num_strings As Integer, _
+                               locale As String, application As String, ret_strings As List)
+
+Declare Public Function get_sprintf(str_num As Long, locale As String, application As String, _
+                                    Optional arg1 As Variant, Optional arg2 As Variant, _
+                                    Optional arg3 As Variant, Optional arg4 As Variant, _
+                                    Optional arg5 As Variant, Optional arg6 As Variant) As String
+
+Declare Function msg_box(the_text As String, the_caption As String, the_type As Integer) As Integer
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Form_Load()
+  Dim ret_strings As New List           'list for control strings
+
+  me.dodefault
+
+  get_strings 13918, 5, locale, "", ret_strings
+  lblDefault.caption                 = ret_strings.ItemByIndex(0)
+  chkSiteNameEna.caption             = ret_strings.ItemByIndex(1)
+  chkFaxNumEna.caption               = ret_strings.ItemByIndex(2)
+  chkMailStopEna.caption             = ret_strings.ItemByIndex(3)
+  chkDefPrinterEna.caption           = ret_strings.ItemByIndex(4)
+
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' CheckBox - Site ID/Name
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkSiteNameEna_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkSiteNameEna.value = TRUE Then
+    txtSiteName.enabled = TRUE
+    txtSiteID.enabled = TRUE
+    cmdCheckSiteID.enabled = TRUE
+    cmdSiteInfo.enabled = TRUE
+  Else
+    txtSiteName.enabled = FALSE
+    txtSiteID.enabled = FALSE
+    txtSiteName.text = ""
+    txtSiteID.text = ""
+    cmdCheckSiteID.enabled = FALSE
+    cmdSiteInfo.enabled = FALSE
+  End If
+End Sub
+    
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Site ID Check button
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdCheckSiteID_click()
+  Dim retVal As Integer                 'function return value
+  Dim s_id   As String                  'temp site id
+  Dim s_name As String                  'temp site name
+  Dim t_rec  As New Record              'temp record
+  Dim wg_rec As Record                  'temp wg record
+
+                    ' set up a filter record
+  t_rec.RecordType = "site_view"
+                    ' get the data from site form into local record append % to use partial strings
+                    
+  Set wg_rec = cobj_recWrkgrpDef.Contents
+  Set t_rec = cobj_site.contents
+' s_name = wg_rec.GetField("x_site_name")
+  s_name = txtSiteName.Text
+
+' s_id = t_rec.GetField("site_id")  
+  s_id = txtSiteId.Text
+  
+                    ' now clear out the record to use as a filter for the search
+  Set t_rec = New Record
+  t_rec.RecordType = "site_view"
+  If Len(s_name) > 0 Then
+    t_rec.SetField "site_name", s_name + "%"
+  End If
+  If Len(s_id) > 0 Then
+    t_rec.SetField "site_id", s_id + "%"
+  End If
+  
+                    ' call showselect method. if no form posted, clear contextual
+                    ' object so it will show up us not validated when we go to save the data
+  retVal = App.ShowSelect (cbSelSite, cmdCheckSiteID, t_rec)
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Site ID Use-Select
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                    ' this dummy event occurs upon the the return from a call to app.showselect
+                    ' if no valid records, warn if record returned, copy to objects
+Sub cmdCheckSiteID_UseSelect(siteList as List, siteCount as Integer)
+  Dim t_rec   As Record
+  Dim retVal  As Integer
+  Dim w_rec   As Record
+
+  If siteCount = 0 Then
+    retVal = msg_box(get_sprintf(13986, locale, ""),get_sprintf(13981, locale, ""),0)
+
+                    ' if no matches found, 
+                    ' clear out the site c_obj      
+    t_rec.RecordType = "site_view"                    
+    t_rec.SetField "site_name", ""
+    t_rec.SetField "site_id", ""
+    t_rec.SetField "objid", NULL   'the objid of the site
+    cobj_site.Fill t_rec
+
+                    ' put the cursor on the site name field  
+    txtSiteName.SetFocus
+
+                    ' else data was found 
+  Else
+    Set t_rec = siteList.ItemByIndex(0)
+    cobj_site.Fill t_rec
+    cobj_site.DataChanged = FALSE
+  End If
+                    ' copy site data to the workgroup record
+  Set w_rec = cobj_recWrkgrpDef.Contents  
+  w_rec.SetField "x_site_name",  t_rec.GetField("site_name")
+  w_rec.SetField "x_site_objid", t_rec.GetField("objid")
+  cobj_recWrkgrpDef.Fill w_rec
+
+                    ' notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+      
+End Sub
+  
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Site Info button Click
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub cmdSiteInfo_click()
+  Dim t_rec as New Record
+
+  Set t_rec = cobj_site.Contents
+  App.ShowSite t_rec, cbShowSiteReadOnly
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' CheckBox - Fax Number
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkFaxNumEna_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkFaxNumEna.value = TRUE Then
+    txtFaxNumber.enabled = TRUE
+  Else
+    txtFaxNumber.enabled = FALSE
+    txtFaxNumber.text = ""
+  End If
+End Sub
+    
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' CheckBox - MAil Stop
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkMailStopEna_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkMailStopEna.value = TRUE Then
+    txtMailStop.enabled = TRUE
+  Else
+    txtMailStop.enabled = FALSE
+    txtMailStop.text = ""
+  End If
+End Sub
+    
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' CheckBox - Default Printer
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkDefPrinterEna_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+  If chkDefPrinterEna.value = TRUE Then
+    ddlDefPrinter.enabled = TRUE
+  Else
+    ddlDefPrinter.enabled = FALSE
+  End If
+End Sub
+    
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Textbox - Mail Stop
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub txtMailStop_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' DDL - Default Printer
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddlDefPrinter_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Message Handler
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Message(ByVal msgNum as Long, ByVal msgStr as String)
+  Select Case msgNum
+   Case MSG_ENA_DEFAULTS
+     chkSiteNameEna.enabled = TRUE
+     chkFaxNumEna.enabled = TRUE
+     chkMailStopEna.enabled = TRUE
+     chkDefPrinterEna.enabled = TRUE
+
+'     Me.Refresh
+
+     chkSiteNameEna_click
+     chkFaxNumEna_click
+     chkMailStopEna_click
+     chkDefPrinterEna_click
+
+                    ' since we only enable defaults 
+                    ' when initializing data,
+                    ' disable the 'Replace'
+                    ' button (it is used as a data dirty
+                    ' indicator)
+     Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CLEARED, ""
+    
+   Case MSG_DISA_DEFAULTS
+     If chkSiteNameEna.value = TRUE Then chkSiteNameEna.value = FALSE
+     If chkFaxNumEna.value = TRUE Then chkFaxNumEna.value = FALSE
+     If chkMailStopEna.value = TRUE Then chkMailStopEna.value = FALSE
+     If chkDefPrinterEna.value = TRUE Then chkDefPrinterEna.value = FALSE
+
+     chkSiteNameEna_click
+     chkFaxNumEna_click
+     chkMailStopEna_click
+     chkDefPrinterEna_click
+
+     chkSiteNameEna.enabled = FALSE
+     chkFaxNumEna.enabled = FALSE
+     chkMailStopEna.enabled = FALSE
+     chkDefPrinterEna.enabled = FALSE
+
+                     ' disable the replace button
+     Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CLEARED, ""
+    
+  Case Else
+     Me.DoDefault
+  End Select
+End Sub     

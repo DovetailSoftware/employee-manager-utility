@@ -1,0 +1,1154 @@
+/******************************************************************************/
+/* Import File for Product Configuration                                      */
+/*                                                                            */
+/* Copyright (C) 2000 First Choice Software, Inc.        All Rights Reserved  */
+/******************************************************************************/
+OBJECT TYPE = "fc_string", NAME="268435457"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=10120;
+   locale="EN_US";
+   application="";
+   string="OK";
+  END_FIELDS
+END_OBJECT NAME="268435457"
+
+OBJECT TYPE = "fc_string", NAME="268435458"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=10121;
+   locale="EN_US";
+   application="";
+   string="Cancel";
+  END_FIELDS
+END_OBJECT NAME="268435458"
+
+OBJECT TYPE = "fc_string", NAME="268435459"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=10122;
+   locale="EN_US";
+   application="";
+   string="Yes";
+  END_FIELDS
+END_OBJECT NAME="268435459"
+
+OBJECT TYPE = "fc_string", NAME="268435460"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=10123;
+   locale="EN_US";
+   application="";
+   string="No";
+  END_FIELDS
+END_OBJECT NAME="268435460"
+
+OBJECT TYPE = "fc_string", NAME="268435461"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=10124;
+   locale="EN_US";
+   application="";
+   string="Save";
+  END_FIELDS
+END_OBJECT NAME="268435461"
+
+OBJECT TYPE = "fc_string", NAME="268435462"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=10125;
+   locale="EN_US";
+   application="";
+   string="Discard";
+  END_FIELDS
+END_OBJECT NAME="268435462"
+
+OBJECT TYPE = "fc_string", NAME="268435463"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=10126;
+   locale="EN_US";
+   application="";
+   string="Abort";
+  END_FIELDS
+END_OBJECT NAME="268435463"
+
+OBJECT TYPE = "fc_string", NAME="268435464"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=10127;
+   locale="EN_US";
+   application="";
+   string="Retry";
+  END_FIELDS
+END_OBJECT NAME="268435464"
+
+OBJECT TYPE = "fc_string", NAME="268435465"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=10128;
+   locale="EN_US";
+   application="";
+   string="Ignore";
+  END_FIELDS
+END_OBJECT NAME="268435465"
+
+OBJECT TYPE = "fc_string", NAME="10129_EN_US"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=10129;
+   locale="EN_US";
+   application="";
+   string="Lookup";
+  END_FIELDS
+END_OBJECT NAME="10129_EN_US"
+
+OBJECT TYPE = "fc_string", NAME="268435466"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12250;
+   locale="EN_US";
+   application="";
+   string="OK";
+  END_FIELDS
+END_OBJECT NAME="268435466"
+
+OBJECT TYPE = "fc_string", NAME="268435467"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12251;
+   locale="EN_US";
+   application="";
+   string="Cancel";
+  END_FIELDS
+END_OBJECT NAME="268435467"
+
+OBJECT TYPE = "fc_string", NAME="268435468"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12260;
+   locale="EN_US";
+   application="";
+   string="Invalid message format received";
+  END_FIELDS
+END_OBJECT NAME="268435468"
+
+OBJECT TYPE = "fc_string", NAME="268435469"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12261;
+   locale="EN_US";
+   application="";
+   string="Invalid value for month field,";
+  END_FIELDS
+END_OBJECT NAME="268435469"
+
+OBJECT TYPE = "fc_string", NAME="268435470"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12262;
+   locale="EN_US";
+   application="";
+   string="Invalid value for day field,";
+  END_FIELDS
+END_OBJECT NAME="268435470"
+
+OBJECT TYPE = "fc_string", NAME="268435471"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12263;
+   locale="EN_US";
+   application="";
+   string="Invalid value for hour field,";
+  END_FIELDS
+END_OBJECT NAME="268435471"
+
+OBJECT TYPE = "fc_string", NAME="268435472"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12264;
+   locale="EN_US";
+   application="";
+   string="Invalid value for minute field,";
+  END_FIELDS
+END_OBJECT NAME="268435472"
+
+OBJECT TYPE = "fc_string", NAME="268435473"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12265;
+   locale="EN_US";
+   application="";
+   string="Invalid value for year field,";
+  END_FIELDS
+END_OBJECT NAME="268435473"
+
+OBJECT TYPE = "fc_string", NAME="268435474"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12266;
+   locale="EN_US";
+   application="";
+   string="Invalid character entered,";
+  END_FIELDS
+END_OBJECT NAME="268435474"
+
+OBJECT TYPE = "fc_string", NAME="268435475"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12267;
+   locale="EN_US";
+   application="";
+   string="Invalid value for seconds field,";
+  END_FIELDS
+END_OBJECT NAME="268435475"
+
+OBJECT TYPE = "fc_string", NAME="268435476"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12280;
+   locale="EN_US";
+   application="";
+   string="Date Entry";
+  END_FIELDS
+END_OBJECT NAME="268435476"
+
+OBJECT TYPE = "fc_string", NAME="268435477"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12281;
+   locale="EN_US";
+   application="";
+   string="Date:";
+  END_FIELDS
+END_OBJECT NAME="268435477"
+
+OBJECT TYPE = "fc_string", NAME="268435478"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12282;
+   locale="EN_US";
+   application="";
+   string="Month";
+  END_FIELDS
+END_OBJECT NAME="268435478"
+
+OBJECT TYPE = "fc_string", NAME="268435479"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12283;
+   locale="EN_US";
+   application="";
+   string="Day";
+  END_FIELDS
+END_OBJECT NAME="268435479"
+
+OBJECT TYPE = "fc_string", NAME="268435480"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12284;
+   locale="EN_US";
+   application="";
+   string="Year";
+  END_FIELDS
+END_OBJECT NAME="268435480"
+
+OBJECT TYPE = "fc_string", NAME="268435481"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12285;
+   locale="EN_US";
+   application="";
+   string="/";
+  END_FIELDS
+END_OBJECT NAME="268435481"
+
+OBJECT TYPE = "fc_string", NAME="268435482"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12286;
+   locale="EN_US";
+   application="";
+   string="/";
+  END_FIELDS
+END_OBJECT NAME="268435482"
+
+OBJECT TYPE = "fc_string", NAME="268435483"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12287;
+   locale="EN_US";
+   application="";
+   string="Time:";
+  END_FIELDS
+END_OBJECT NAME="268435483"
+
+OBJECT TYPE = "fc_string", NAME="268435484"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12288;
+   locale="EN_US";
+   application="";
+   string="Hour";
+  END_FIELDS
+END_OBJECT NAME="268435484"
+
+OBJECT TYPE = "fc_string", NAME="268435485"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12289;
+   locale="EN_US";
+   application="";
+   string="Minute";
+  END_FIELDS
+END_OBJECT NAME="268435485"
+
+OBJECT TYPE = "fc_string", NAME="268435486"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12290;
+   locale="EN_US";
+   application="";
+   string="Seconds";
+  END_FIELDS
+END_OBJECT NAME="268435486"
+
+OBJECT TYPE = "fc_string", NAME="268435487"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12291;
+   locale="EN_US";
+   application="";
+   string=":";
+  END_FIELDS
+END_OBJECT NAME="268435487"
+
+OBJECT TYPE = "fc_string", NAME="268435488"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12292;
+   locale="EN_US";
+   application="";
+   string="";
+  END_FIELDS
+END_OBJECT NAME="268435488"
+
+OBJECT TYPE = "fc_string", NAME="268435489"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12293;
+   locale="EN_US";
+   application="";
+   string="am";
+  END_FIELDS
+END_OBJECT NAME="268435489"
+
+OBJECT TYPE = "fc_string", NAME="268435490"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=12294;
+   locale="EN_US";
+   application="";
+   string="pm";
+  END_FIELDS
+END_OBJECT NAME="268435490"
+
+OBJECT TYPE = "fc_string", NAME="13899"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13899;
+   locale="EN_US";
+   application="";
+   string="Delete";
+  END_FIELDS
+END_OBJECT NAME="13899"
+
+OBJECT TYPE = "fc_string", NAME="268435491"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13900;
+   locale="EN_US";
+   application="";
+   string="Employee Manager";
+  END_FIELDS
+END_OBJECT NAME="268435491"
+
+OBJECT TYPE = "fc_string", NAME="268435492"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13901;
+   locale="EN_US";
+   application="";
+   string="Find";
+  END_FIELDS
+END_OBJECT NAME="268435492"
+
+OBJECT TYPE = "fc_string", NAME="268435493"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13902;
+   locale="EN_US";
+   application="";
+   string="Add...";
+  END_FIELDS
+END_OBJECT NAME="268435493"
+
+OBJECT TYPE = "fc_string", NAME="268435494"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13903;
+   locale="EN_US";
+   application="";
+   string="Replace";
+  END_FIELDS
+END_OBJECT NAME="268435494"
+
+OBJECT TYPE = "fc_string", NAME="268435495"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13904;
+   locale="EN_US";
+   application="";
+   string="Clear";
+  END_FIELDS
+END_OBJECT NAME="268435495"
+
+OBJECT TYPE = "fc_string", NAME="268435496"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13905;
+   locale="EN_US";
+   application="";
+   string="Done";
+  END_FIELDS
+END_OBJECT NAME="268435496"
+
+OBJECT TYPE = "fc_string", NAME="268435497"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13906;
+   locale="EN_US";
+   application="";
+   string="Use Feature";
+  END_FIELDS
+END_OBJECT NAME="268435497"
+
+OBJECT TYPE = "fc_string", NAME="268435498"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13907;
+   locale="EN_US";
+   application="";
+   string="Supervisor";
+  END_FIELDS
+END_OBJECT NAME="268435498"
+
+OBJECT TYPE = "fc_string", NAME="268435499"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13908;
+   locale="EN_US";
+   application="";
+   string="Resource Config";
+  END_FIELDS
+END_OBJECT NAME="268435499"
+
+OBJECT TYPE = "fc_string", NAME="268435500"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13909;
+   locale="EN_US";
+   application="";
+   string="Labor Rate";
+  END_FIELDS
+END_OBJECT NAME="268435500"
+
+OBJECT TYPE = "fc_string", NAME="268435501"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13910;
+   locale="EN_US";
+   application="";
+   string="Source Control";
+  END_FIELDS
+END_OBJECT NAME="268435501"
+
+OBJECT TYPE = "fc_string", NAME="268435502"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13911;
+   locale="EN_US";
+   application="";
+   string="First Name";
+  END_FIELDS
+END_OBJECT NAME="268435502"
+
+OBJECT TYPE = "fc_string", NAME="268435503"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13912;
+   locale="EN_US";
+   application="";
+   string="Last Name";
+  END_FIELDS
+END_OBJECT NAME="268435503"
+
+OBJECT TYPE = "fc_string", NAME="268435504"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13913;
+   locale="EN_US";
+   application="";
+   string="Use Feature";
+  END_FIELDS
+END_OBJECT NAME="268435504"
+
+OBJECT TYPE = "fc_string", NAME="268435505"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13914;
+   locale="EN_US";
+   application="";
+   string="Acting Supervisor";
+  END_FIELDS
+END_OBJECT NAME="268435505"
+
+OBJECT TYPE = "fc_string", NAME="268435506"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13915;
+   locale="EN_US";
+   application="";
+   string="Field Engineer";
+  END_FIELDS
+END_OBJECT NAME="268435506"
+
+OBJECT TYPE = "fc_string", NAME="268435507"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13916;
+   locale="EN_US";
+   application="";
+   string="Allow Proxy";
+  END_FIELDS
+END_OBJECT NAME="268435507"
+
+OBJECT TYPE = "fc_string", NAME="268435508"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13917;
+   locale="EN_US";
+   application="";
+   string="Starts Today";
+  END_FIELDS
+END_OBJECT NAME="268435508"
+
+OBJECT TYPE = "fc_string", NAME="268435509"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13918;
+   locale="EN_US";
+   application="";
+   string="Use Feature";
+  END_FIELDS
+END_OBJECT NAME="268435509"
+
+OBJECT TYPE = "fc_string", NAME="268435510"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13919;
+   locale="EN_US";
+   application="";
+   string="Site Name/ID";
+  END_FIELDS
+END_OBJECT NAME="268435510"
+
+OBJECT TYPE = "fc_string", NAME="268435511"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13920;
+   locale="EN_US";
+   application="";
+   string="Fax Number";
+  END_FIELDS
+END_OBJECT NAME="268435511"
+
+OBJECT TYPE = "fc_string", NAME="268435512"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13921;
+   locale="EN_US";
+   application="";
+   string="Mail Stop";
+  END_FIELDS
+END_OBJECT NAME="268435512"
+
+OBJECT TYPE = "fc_string", NAME="268435513"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13922;
+   locale="EN_US";
+   application="";
+   string="Default Printer";
+  END_FIELDS
+END_OBJECT NAME="268435513"
+
+OBJECT TYPE = "fc_string", NAME="268435514"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13923;
+   locale="EN_US";
+   application="";
+   string="Use Feature";
+  END_FIELDS
+END_OBJECT NAME="268435514"
+
+OBJECT TYPE = "fc_string", NAME="268435515"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13924;
+   locale="EN_US";
+   application="";
+   string="Online Privilege";
+  END_FIELDS
+END_OBJECT NAME="268435515"
+
+OBJECT TYPE = "fc_string", NAME="268435516"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13925;
+   locale="EN_US";
+   application="";
+   string="Offline Privilege";
+  END_FIELDS
+END_OBJECT NAME="268435516"
+
+OBJECT TYPE = "fc_string", NAME="268435517"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13926;
+   locale="EN_US";
+   application="";
+   string="Default Notifications Active";
+  END_FIELDS
+END_OBJECT NAME="268435517"
+
+OBJECT TYPE = "fc_string", NAME="268435518"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13927;
+   locale="EN_US";
+   application="";
+   string="Notification Information:";
+  END_FIELDS
+END_OBJECT NAME="268435518"
+
+OBJECT TYPE = "fc_string", NAME="268435519"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13928;
+   locale="EN_US";
+   application="";
+   string="During:";
+  END_FIELDS
+END_OBJECT NAME="268435519"
+
+OBJECT TYPE = "fc_string", NAME="268435520"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13929;
+   locale="EN_US";
+   application="";
+   string="During Business Hours Notification method:";
+  END_FIELDS
+END_OBJECT NAME="268435520"
+
+OBJECT TYPE = "fc_string", NAME="268435521"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13930;
+   locale="EN_US";
+   application="";
+   string="High:";
+  END_FIELDS
+END_OBJECT NAME="268435521"
+
+OBJECT TYPE = "fc_string", NAME="268435522"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13931;
+   locale="EN_US";
+   application="";
+   string="Medium:";
+  END_FIELDS
+END_OBJECT NAME="268435522"
+
+OBJECT TYPE = "fc_string", NAME="268435523"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13932;
+   locale="EN_US";
+   application="";
+   string="Low:";
+  END_FIELDS
+END_OBJECT NAME="268435523"
+
+OBJECT TYPE = "fc_string", NAME="268435524"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13933;
+   locale="EN_US";
+   application="";
+   string="Use Feature";
+  END_FIELDS
+END_OBJECT NAME="268435524"
+
+OBJECT TYPE = "fc_string", NAME="268435525"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13934;
+   locale="EN_US";
+   application="";
+   string="Business Calendar";
+  END_FIELDS
+END_OBJECT NAME="268435525"
+
+OBJECT TYPE = "fc_string", NAME="268435526"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13935;
+   locale="EN_US";
+   application="";
+   string="Effective Date";
+  END_FIELDS
+END_OBJECT NAME="268435526"
+
+OBJECT TYPE = "fc_string", NAME="268435527"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13936;
+   locale="EN_US";
+   application="";
+   string="Today";
+  END_FIELDS
+END_OBJECT NAME="268435527"
+
+OBJECT TYPE = "fc_string", NAME="268435528"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13937;
+   locale="EN_US";
+   application="";
+   string="Date";
+  END_FIELDS
+END_OBJECT NAME="268435528"
+
+OBJECT TYPE = "fc_string", NAME="268435529"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13938;
+   locale="EN_US";
+   application="";
+   string="List Queues where Name:";
+  END_FIELDS
+END_OBJECT NAME="268435529"
+
+OBJECT TYPE = "fc_string", NAME="268435530"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13939;
+   locale="EN_US";
+   application="";
+   string="Available Queues:";
+  END_FIELDS
+END_OBJECT NAME="268435530"
+
+OBJECT TYPE = "fc_string", NAME="268435531"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13940;
+   locale="EN_US";
+   application="";
+   string="Selected Queues:";
+  END_FIELDS
+END_OBJECT NAME="268435531"
+
+OBJECT TYPE = "fc_string", NAME="268435532"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13941;
+   locale="EN_US";
+   application="";
+   string="List";
+  END_FIELDS
+END_OBJECT NAME="268435532"
+
+OBJECT TYPE = "fc_string", NAME="268435533"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13942;
+   locale="EN_US";
+   application="";
+   string="Copy >>";
+  END_FIELDS
+END_OBJECT NAME="268435533"
+
+OBJECT TYPE = "fc_string", NAME="268435534"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13943;
+   locale="EN_US";
+   application="";
+   string="<< Remove";
+  END_FIELDS
+END_OBJECT NAME="268435534"
+
+OBJECT TYPE = "fc_string", NAME="268435535"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13944;
+   locale="EN_US";
+   application="";
+   string="List Employees whose Name:";
+  END_FIELDS
+END_OBJECT NAME="268435535"
+
+OBJECT TYPE = "fc_string", NAME="268435536"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13945;
+   locale="EN_US";
+   application="";
+   string="Available Employees:";
+  END_FIELDS
+END_OBJECT NAME="268435536"
+
+OBJECT TYPE = "fc_string", NAME="268435537"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13946;
+   locale="EN_US";
+   application="";
+   string="Workgroup Members:";
+  END_FIELDS
+END_OBJECT NAME="268435537"
+
+OBJECT TYPE = "fc_string", NAME="268435538"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13947;
+   locale="EN_US";
+   application="";
+   string="Last Name:";
+  END_FIELDS
+END_OBJECT NAME="268435538"
+
+OBJECT TYPE = "fc_string", NAME="268435539"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13948;
+   locale="EN_US";
+   application="";
+   string="First Name:";
+  END_FIELDS
+END_OBJECT NAME="268435539"
+
+OBJECT TYPE = "fc_string", NAME="268435540"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13949;
+   locale="EN_US";
+   application="";
+   string="List";
+  END_FIELDS
+END_OBJECT NAME="268435540"
+
+OBJECT TYPE = "fc_string", NAME="268435541"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13950;
+   locale="EN_US";
+   application="";
+   string="Copy >>";
+  END_FIELDS
+END_OBJECT NAME="268435541"
+
+OBJECT TYPE = "fc_string", NAME="268435542"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13951;
+   locale="EN_US";
+   application="";
+   string="<< Remove";
+  END_FIELDS
+END_OBJECT NAME="268435542"
+
+OBJECT TYPE = "fc_string", NAME="268435543"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13952;
+   locale="EN_US";
+   application="";
+   string="Available Workgroups:";
+  END_FIELDS
+END_OBJECT NAME="268435543"
+
+OBJECT TYPE = "fc_string", NAME="268435544"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13953;
+   locale="EN_US";
+   application="";
+   string="Add";
+  END_FIELDS
+END_OBJECT NAME="268435544"
+
+OBJECT TYPE = "fc_string", NAME="268435545"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13954;
+   locale="EN_US";
+   application="";
+   string="Done";
+  END_FIELDS
+END_OBJECT NAME="268435545"
+
+OBJECT TYPE = "fc_string", NAME="268435566"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13955;
+   locale="EN_US";
+   application="";
+   string="After Business Hours Notification method:";
+  END_FIELDS
+END_OBJECT NAME="268435566"
+
+OBJECT TYPE = "fc_string", NAME="268435546"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13960;
+   locale="EN_US";
+   application="";
+   string="Workgroup Start";
+  END_FIELDS
+END_OBJECT NAME="268435546"
+
+OBJECT TYPE = "fc_string", NAME="268435547"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13961;
+   locale="EN_US";
+   application="";
+   string="Today";
+  END_FIELDS
+END_OBJECT NAME="268435547"
+
+OBJECT TYPE = "fc_string", NAME="268435548"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13962;
+   locale="EN_US";
+   application="";
+   string="Date";
+  END_FIELDS
+END_OBJECT NAME="268435548"
+
+OBJECT TYPE = "fc_string", NAME="268435564"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13963;
+   locale="EN_US";
+   application="";
+   string="Update Attr";
+  END_FIELDS
+END_OBJECT NAME="268435564"
+
+OBJECT TYPE = "fc_string", NAME="268435549"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13980;
+   locale="EN_US";
+   application="";
+   string="Data has been Modified. Are you sure you want to exit?";
+  END_FIELDS
+END_OBJECT NAME="268435549"
+
+OBJECT TYPE = "fc_string", NAME="268435550"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13981;
+   locale="EN_US";
+   application="";
+   string="WARNING!";
+  END_FIELDS
+END_OBJECT NAME="268435550"
+
+OBJECT TYPE = "fc_string", NAME="268435551"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13982;
+   locale="EN_US";
+   application="";
+   string="Supervisor no longer exists in employee database.";
+  END_FIELDS
+END_OBJECT NAME="268435551"
+
+OBJECT TYPE = "fc_string", NAME="268435552"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13983;
+   locale="EN_US";
+   application="";
+   string="Site no longer exists in database.";
+  END_FIELDS
+END_OBJECT NAME="268435552"
+
+OBJECT TYPE = "fc_string", NAME="268435553"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13984;
+   locale="EN_US";
+   application="";
+   string="Business Calendar no longer exists in database.";
+  END_FIELDS
+END_OBJECT NAME="268435553"
+
+OBJECT TYPE = "fc_string", NAME="268435554"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13985;
+   locale="EN_US";
+   application="";
+   string="No valid Supervisor Selected. Please Enter a valid supervisor name or press the check mark to select.";
+  END_FIELDS
+END_OBJECT NAME="268435554"
+
+OBJECT TYPE = "fc_string", NAME="268435555"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13986;
+   locale="EN_US";
+   application="";
+   string="No valid Site Selected. Please Enter a valid site name or press the check mark to select.";
+  END_FIELDS
+END_OBJECT NAME="268435555"
+
+OBJECT TYPE = "fc_string", NAME="268435556"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13987;
+   locale="EN_US";
+   application="";
+   string="No valid Business Calendar Selected. Please Enter a valid Business Calendar or press the check mark to select.";
+  END_FIELDS
+END_OBJECT NAME="268435556"
+
+OBJECT TYPE = "fc_string", NAME="268435557"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13988;
+   locale="EN_US";
+   application="";
+   string="Site must be selected if Site Name/Id is enabled.";
+  END_FIELDS
+END_OBJECT NAME="268435557"
+
+OBJECT TYPE = "fc_string", NAME="268435558"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13989;
+   locale="EN_US";
+   application="";
+   string="Business Calendar must be selected if Business Calendar is enabled.";
+  END_FIELDS
+END_OBJECT NAME="268435558"
+
+OBJECT TYPE = "fc_string", NAME="268435559"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13990;
+   locale="EN_US";
+   application="";
+   string="ERROR!";
+  END_FIELDS
+END_OBJECT NAME="268435559"
+
+OBJECT TYPE = "fc_string", NAME="268435560"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13991;
+   locale="EN_US";
+   application="";
+   string="OVERRIDE?";
+  END_FIELDS
+END_OBJECT NAME="268435560"
+
+OBJECT TYPE = "fc_string", NAME="268435561"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13992;
+   locale="EN_US";
+   application="";
+   string="Propagate new workgroup data to all workgroup members?";
+  END_FIELDS
+END_OBJECT NAME="268435561"
+
+OBJECT TYPE = "fc_string", NAME="268435562"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13993;
+   locale="EN_US";
+   application="";
+   string="already exists in WORKGROUP list.";
+  END_FIELDS
+END_OBJECT NAME="268435562"
+
+OBJECT TYPE = "fc_string", NAME="268435563"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13994;
+   locale="EN_US";
+   application="";
+   string="Data has been Modified. Do you want to save changes?";
+  END_FIELDS
+END_OBJECT NAME="268435563"
+
+OBJECT TYPE = "fc_string", NAME="268435565"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13995;
+   locale="EN_US";
+   application="";
+   string="Supervisor selected must be able to be an acting supervisor.";
+  END_FIELDS
+END_OBJECT NAME="268435565"
+
+OBJECT TYPE = "fc_string", NAME="13996"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13996;
+   locale="EN_US";
+   application="";
+   string="Are you sure you want to delete the Workgroup attributes?";
+  END_FIELDS
+END_OBJECT NAME="13996"
+
+OBJECT TYPE = "fc_string", NAME="13997"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13997;
+   locale="EN_US";
+   application="";
+   string="Propagate attributes of workgroup to employee(s) being moved?";
+  END_FIELDS
+END_OBJECT NAME="13997"
+
+OBJECT TYPE = "fc_string", NAME="13998"
+  UNIQUE_FIELD = id, locale, application
+  FIELDS
+   id=13998;
+   locale="EN_US";
+   application="";
+   string="Workgroup Data has changed. Please save or discard changes before modifying membership.";
+  END_FIELDS
+END_OBJECT NAME="13998"

@@ -1,0 +1,9 @@
+Option Explicit
+Sub Form_Load()
+	Me.DoDefault
+End Sub
+
+Sub cmdWorkgroup_click()
+Dim wrkgrp as New Form
+	wrkgrp.Show 2265, cbFrontIfUp
+End Sub

@@ -1,0 +1,206 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        : Employee Manager Form 2269
+'
+' Series         : First Choice Administration Series(tm)
+'
+' Name           : fc2269.cbs
+'
+' Description    : Allows for workgroup record notification defaults to be updated
+'
+' Author         : First Choice Software, Inc.
+'                  4412 Spicewood Springs Road
+'                  Suite 701
+'                  Austin, TX  78759
+'                  (512) 418-2905
+'                  EMAIL: support@fchoice.com
+'                  www.fchoice.com
+'
+' Platforms      : This version supports Clarify 4.0 and later
+'
+' Copyright (C)  1999 First Choice Software, Inc.
+' All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'   Functional Declarations
+'
+' Copyright (C) 1999. First Choice Software, Inc. All Rights Reserved
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'NOTIFICATION TAB
+
+Option Explicit
+' Global Variables
+'
+Global locale As String   'global variables
+
+' Form ID's
+'
+Const FRM_WRKGRP_MAIN%    = 2265
+
+Const MSG_FIRST_EMP_MAN   = CBFirstMessage + 3000
+Const MSG_ENA_DEFAULTS    = MSG_FIRST_EMP_MAN + 0 'enable "set default" chkboxes
+Const MSG_DISA_DEFAULTS   = MSG_FIRST_EMP_MAN + 1 'disable "set default" chkboxes
+Const MSG_DATA_CHANGED    = MSG_FIRST_EMP_MAN + 2 'cobj_recWrkgrpDef data changed
+Const MSG_DATA_CLEARED    = MSG_FIRST_EMP_MAN + 3 'disable the replace button on main form
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Declare external functions
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Sub get_strings(start_val As Long, _
+                               num_strings As Integer, _
+                               locale As String, _
+                               application As String, _
+                               ret_strings As List)
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Form_Load()
+  Dim ret_strings As New List           'list for control strings
+
+  me.dodefault
+
+  get_strings 13926, 7, locale, "", ret_strings
+  chkNotify.caption                = ret_strings.ItemByIndex(0)
+'  lblInformation.caption           = ret_strings.ItemByIndex(1) ' Not needed any more
+'  lblDuring.caption                = ret_strings.ItemByIndex(2) ' Not needed any more
+  lblUrgency.caption               = ret_strings.ItemByIndex(3)
+  lblHigh.caption                  = ret_strings.ItemByIndex(4)
+  lblMed.caption                   = ret_strings.ItemByIndex(5)
+  lblLow.caption                   = ret_strings.ItemByIndex(6)
+  lblHigh_after.caption            = ret_strings.ItemByIndex(4)
+  lblMed_after.caption             = ret_strings.ItemByIndex(5)
+  lblLow_after.caption             = ret_strings.ItemByIndex(6)
+
+  get_strings 13955, 1, locale, "", ret_strings
+  lblUrgency_after.caption         = ret_strings.ItemByIndex(0)
+
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Notifications Active Checkbox
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub chkNotify_click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+
+	If chkNotify.value = TRUE Then
+'    ddlNotificationHours.enabled = True    Not needed any more - control removed
+    ddlHigh.enabled = True    
+    ddlMed.enabled = True    
+    ddlLow.enabled = True    
+    ddlHigh_after.enabled = True    
+    ddlMed_after.enabled = True    
+    ddlLow_after.enabled = True    
+	Else
+'    ddlNotificationHours.enabled = False    ' Control removed
+    ddlHigh.enabled = False
+    ddlMed.enabled = False
+    ddlLow.enabled = False
+    ddlHigh_after.enabled = False
+    ddlMed_after.enabled = False  
+    ddlLow_after.enabled = False   
+	End If
+End Sub
+		
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' dropdown list - During
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddlNotificationHours_Click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' dropdown list - High
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddlHigh_Click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' dropdown list - Medium
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddlMed_Click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' dropdown list - Low
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddlLow_Click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' dropdown list - High_after
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddlHigh_after_Click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' dropdown list - Medium_after
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddlMed_after_Click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' dropdown list - Low_after
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub ddlLow_after_Click()
+  'notify main form that data has changed
+  Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CHANGED, ""
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Message Handler
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub Message(ByVal msgNum as Long, ByVal msgStr as String)
+  Select Case msgNum
+  	Case MSG_ENA_DEFAULTS
+  		chkNotify.enabled = TRUE
+'  		Me.Refresh
+  		chkNotify_click
+                    ' disable the replace button
+      Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CLEARED, ""
+  	Case MSG_DISA_DEFAULTS
+  		If chkNotify.value = TRUE Then
+  			chkNotify.value = FALSE
+  		End If
+  		chkNotify_click
+  		chkNotify.enabled = FALSE
+                    ' disable the replace button
+      Me.NotifyByID FRM_WRKGRP_MAIN, MSG_DATA_CLEARED, ""
+  	Case Else
+  		Me.DoDefault
+	End Select
+End Sub			

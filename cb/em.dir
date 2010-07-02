@@ -1,0 +1,21 @@
+em2266.cbs -F 2266 em1.0
+em2267.cbs -F 2267 em1.0
+em2268.cbs -F 2268 em1.0
+em2269.cbs -F 2269 em1.0
+em2271.cbs -F 2271 em1.0
+em2272.cbs -F 2272 em1.0
+em2273.cbs -F 2273 em1.0
+em2274.cbs -F 2274 em1.0
+em1947.cbs -F 1947 em1.0
+em1956.cbs -F 1956 em1.0
+em703.cbs -F 703 em1.0
+em707.cbs -F 707 em1.0
+em2265-70.cbs -F 2265 em1.0
+'em2265.cbs -F 2265 em1.0
+
+em_global.cbs -G clarify -N em_glob
+string.cbs -G clarify -N string
+
+em_global_fd.cbs -G clarify -N fd
+'em_global_fd.cbs -G clarify appsrv -N fd
+

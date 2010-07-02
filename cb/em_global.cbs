@@ -1,0 +1,536 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+' $Header: /fchoice/product/emu/cb/em_global.cbs 11    10/12/01 11:30a Gary $
+'                                                                          
+' Product        :  Employee Manager
+'                                                                           
+' Name           :  em_global.cbs                                           
+'                                                                           
+' Description    :  Provides code to allow the Workgroup Administrato GUI to be launched 
+'                   from a Clarify application menu bar.   
+''
+'                   initialize_app() - clarify has been loaded    
+'                                                                           
+' Author          : First Choice Software, Inc.                             
+'                   4412 Spicewood Springs Road, Suite 701                            
+'                   Austin, TX 78759                                       
+'                   (512) 418-2905                                          
+'                                                                           
+' Platforms       : This version supports Clarify 5.0 and later             
+'                                                                           
+' Copyright (C)  1999 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Option Explicit
+
+'External Declarations
+Declare Public Sub RemoveUserFromAllQueues(user_objid as Long)
+
+Global fc_abday      As String
+Global fc_abmon      As String
+Global fc_am_pm      As String
+Global fc_d_fmt      As String
+Global fc_d_t_fmt    As String
+Global fc_date_str   As String   'holds the latest date process by the date dialog box
+Global fc_day        As String
+Global fc_mon        As String
+Global fc_t_fmt      As String
+Global fc_t_fmt_ampm As String
+Global locale        As String
+Global the_response  As Integer
+
+'Maximum number of employees to process at 1 time when propagating workgroup
+'changes to members. (Prevents memory overloading)
+'
+Const MAX_ITEMS = 50
+
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Get the locale for the user
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub set_locale()
+  Dim t_ret  As New BulkRetrieve
+  Dim t_list As List
+  Dim t_rec  As Record
+
+  If Trim$(locale) <> "" Then Exit Sub
+  locale = Trim$(Environ("LC_STRING"))
+  If locale = "" Then
+     locale = Trim$(Environ("LC_ALL"))
+  End If
+  If locale = "" Then
+     locale = "EN_US"
+  End If
+
+  'Set locale defaults based on fc_locale record
+  t_ret.SimpleQuery  0, "fc_locale"
+  t_ret.AppendFilter 0, "locale_name", cbEqual, locale
+  t_ret.RetrieveRecords
+  Set t_list = t_ret.GetRecordList(0)
+  If t_list.count > 0 Then
+    Set t_rec = t_list.ItemByIndex(0)
+    fc_abday      = t_rec.GetField("abday")
+    fc_day        = t_rec.GetField("day")
+    fc_abmon      = t_rec.GetField("abmon")
+    fc_mon        = t_rec.GetField("mon")
+    fc_d_t_fmt    = t_rec.GetField("d_t_fmt")
+    fc_d_fmt      = t_rec.GetField("d_fmt")
+    fc_t_fmt      = t_rec.GetField("t_fmt")
+    fc_am_pm      = t_rec.GetField("am_pm")
+    fc_t_fmt_ampm = t_rec.GetField("t_fmt_ampm")
+  End If    
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Initialize the Application
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub initialize_app() 
+  Dim pc_menu As New AppMenu
+
+  ' Get the locale for the user
+  set_locale
+
+  '
+  ' Add List Select item to the Setup Menu in Policies and Customers
+  
+  pc_menu.MenuBarID = 1001
+  pc_menu.AddItem "Setup", "Workgroups", "OpenWorkgroups"
+
+  ' Done
+  '
+  App.ShowDefaultMenu  
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Open Menu Item Click Methods
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub OpenWorkgroups_Click()
+  Dim frmAlias As New Form
+
+  frmAlias.Show 2265, cbFrontIfUp
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'open the date dialog form                                                    '
+'                                                                             '
+'Copyright (C) 1999 First Choice Software, Inc.           All Rights Reserved '
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Function fc_datebox(dt_format as Integer, ddl_option as Integer, time_option as Integer, mon_option as Integer, _
+                    optional date_string as Variant, optional time_string as Variant) As Integer
+
+  Dim new_form As New Form     
+  Dim pass_str As String
+
+  If dt_format < 1 or dt_format > 3 Then
+    fc_datebox = -1
+    Exit Function
+  End If
+
+  If ddl_option < 0 or ddl_option > 1 Then
+    fc_datebox = -2
+    Exit Function
+  End If
+
+  If time_option < 0 or time_option > 2 Then
+    fc_datebox = -3
+    Exit Function
+  End If
+  
+  If mon_option < 0 or mon_option > 2 Then
+    fc_datebox = -4
+    Exit Function
+  End If
+  
+  pass_str = CStr(dt_format) & CStr(ddl_option) & CStr(time_option) & CStr(mon_option)
+
+  If Not IsMissing(date_string) Then
+    pass_str = pass_str & CStr(date_string)
+  End If
+
+  If Not IsMissing(time_string) Then
+    pass_str = pass_str & CStr(time_string)
+  End If
+
+  fc_date_str = ""
+  new_form.Show 1956, cbFrontIfUp
+  new_form.Notify cbFirstMessage + 1, pass_str
+
+  while fc_date_str = ""
+    sleep 100
+  wend
+End Function
+
+
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Update the workgroup data for a list of employees
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub UpdateEmployeeList(rec_workgroup as Record,emp_objid_list as List,UpdateQueues as Boolean)
+  Dim NumEmployees as Integer            'Number of Employees to be updated
+  Dim brWorkgroup as New BulkRetrieve    'Bulk to get workgroup data
+  Dim q_counter as Integer               'Looping counter for queues
+  Dim partial_emp_objid_list as New List 'Subset of emp_objid_list
+  Dim rec_online as Record               'Online Priv Class Record
+  Dim rec_offline as Record              'Offline Priv Class Record
+  Dim rec_rc as Record                   'Resource Config Record
+  Dim rec_site as Record                 'Site Record
+  Dim rec_supervisor as Record           'Supervisor Record
+  Dim rec_biz_cal_hdr as Record          'Biz Cal Header Record
+  Dim rec_wk_work_hr as Record           'wk_work_hr Record
+  Dim rec_biz_cal as Record              'Biz Cal record
+  Dim wkgrp_queue_list as List           'List of queues for this workgroup
+  Dim brEmp as New BulkRetrieve          'Query structure for employee data
+  Dim counter as Integer                 'Loop counter
+  Dim rec_emp as Record                  'Employee Record
+  Dim emp_list as List                   'List of employee records
+  Dim rec_user as Record                 'User Record
+  Dim user_list as List                  'List of user records
+  Dim t_list as List                     'Temporary List of Records
+  Dim bs as New BulkSave                 'Structure to save all data
+  Dim queue_list as List                 'List of queue records
+  Dim rec_queue as Record                'Queue Record
+  Dim list_counter as Integer            'Loop Counter   
+  Dim list_counter2 as Integer           'Loop Counter   
+  Dim list_counter3 as Integer           'Loop Counter   
+  Dim NumItemsToProcess as Integer       'Number of items to process in this batch
+  Dim RemoveList as New List             'List of Items to be removed
+  Dim biz_cal_hdr_list as List           'List of Biz Cal Headers
+  Dim biz_cal_list as List               'List of Biz Cals
+	Dim ret_int as Long
+ 	Dim CallString as String
+  Dim UserObjid as Long
+
+  'debug.print "Number of employees = " + CStr(emp_objid_list.Count)
+
+                                         'Set the Item type for partial list 
+  partial_emp_objid_list.ItemType = "long"
+                                         'Set the Item type for remove list 
+  RemoveList.ItemType = "integer"
+  
+                                         'Define the Number of Employees to be updated 
+                                         'If none, there's nothing to do, so exit
+  NumEmployees = emp_objid_list.Count
+  If NumEmployees = 0 Then 
+    Exit Sub
+  End If
+                                       'Get all of the Workgroup Data
+  brWorkgroup.SimpleQuery       0, "privclass"
+  brWorkgroup.AppendFilter      0, "class_name", cbEqual, rec_workgroup.GetField("x_online_priv")
+  brWorkgroup.SimpleQuery       1, "privclass"
+  brWorkgroup.AppendFilter      1, "class_name", cbEqual, rec_workgroup.GetField("x_offline_priv")
+  brWorkgroup.SimpleQuery       2, "rc_config"
+  brWorkgroup.AppendFilter      2, "name",       cbEqual, rec_workgroup.GetField("x_rc_config_name")
+  brWorkgroup.SimpleQuery       3, "site"
+  brWorkgroup.AppendFilter      3, "name",       cbEqual, rec_workgroup.GetField("x_site_name")
+  brWorkgroup.SimpleQuery       4, "employee"
+  brWorkgroup.AppendFilter      4, "first_name", cbEqual, rec_workgroup.GetField("x_supervisor_first")
+  brWorkgroup.AppendFilter      4, "last_name",  cbEqual, rec_workgroup.GetField("x_supervisor_last")
+  brWorkgroup.SimpleQuery       5, "wk_work_hr"
+  brWorkgroup.AppendFilter      5, "title",      cbEqual, rec_workgroup.GetField("x_biz_cal_title")
+  brWorkgroup.SetRootByID          "workgroup", rec_workgroup.GetField("objid")
+  brWorkgroup.TraverseFromRoot  6, "workgroup2queue"
+  brWorkgroup.RetrieveRecords
+
+
+                                       'Get Onlive Priv Class
+  Set t_list = brWorkgroup.GetRecordList(0)           
+  If t_list.Count > 0 Then
+      Set rec_online = t_list.ItemByIndex (0)
+  End If
+                                       'Get Offlive Priv Class
+  Set t_list = brWorkgroup.GetRecordList(1)           
+  If t_list.Count > 0 Then
+      Set rec_offline = t_list.ItemByIndex (0)
+  End If
+                                       'Get Resource Config
+  Set t_list = brWorkgroup.GetRecordList(2)           
+  If t_list.Count > 0 Then
+      Set rec_rc = t_list.ItemByIndex (0)
+  End If
+                                       'Get Site
+  Set t_list = brWorkgroup.GetRecordList(3)           
+  If t_list.Count > 0 Then
+      Set rec_site = t_list.ItemByIndex (0)
+  End If
+                                       'Get Supervisor
+  Set t_list = brWorkgroup.GetRecordList(4)           
+  If t_list.Count > 0 Then
+      Set rec_supervisor = t_list.ItemByIndex (0)
+  End If
+                                       'Get Biz Cal
+  Set t_list = brWorkgroup.GetRecordList(5)           
+  If t_list.Count > 0 Then
+      Set rec_wk_work_hr = t_list.ItemByIndex (0)
+  End If
+                                       'Get Queues for this workgroup
+  Set wkgrp_queue_list = brWorkgroup.GetRecordList(6)
+
+  'debug.print "Number of queues in this workgroup = " + CStr(wkgrp_queue_list.Count)
+
+
+                                       'Time to do the employee processing
+                                       'Sort the list of objids 
+  emp_objid_list.Sort 
+                                       'To be more efficient (and to prevent POMS from
+                                       'blowing up), we'll only process so many employees
+                                       'at one time (in a batch). 
+                                       'While we have employees left to process, keep going
+
+
+While emp_objid_list.Count > 0
+                                       'If we have more than the MAX, only process MAX items
+                                       'Else, process them all 
+ If emp_objid_list.Count > MAX_ITEMS Then 
+   NumItemsToProcess = MAX_ITEMS
+ Else
+   NumItemsToProcess = emp_objid_list.Count 
+ End If 
+
+  'debug.print "Number of items to process= " + CStr(NumItemsToProcess)
+
+                                       'Clear the Lists each iteration
+  partial_emp_objid_list.Clear
+  RemoveList.Clear
+                                       'Clear the Bulk Save each iteration
+  Set bs = Nothing
+  Set bs = New BulkSave
+                                       'Get the items to process in this batch
+                                       'Build a list of Indexes to be removed
+  For list_counter = 0 to NumItemsToProcess - 1
+    partial_emp_objid_list.AppendItem emp_objid_list.ItemByIndex(list_counter)
+    RemoveList.AppendItem list_counter
+  Next list_counter
+                                       'Remove the processed items from the list
+  emp_objid_list.RemoveByIndex RemoveList
+
+
+                                       'Get all needed employee & user data
+  brEmp.SimpleQuery        0, "employee"
+  brEmp.AppendFilter       0, "objid", cbIn, partial_emp_objid_list
+  brEmp.TraverseFromParent 1, "employee2user", 0
+  brEmp.TraverseFromParent 2, "empl_hrs2biz_cal_hdr",0
+  brEmp.TraverseFromParent 3, "biz_cal_hdr2biz_cal", 2
+  brEmp.TraverseFromParent 4, "biz_cal2wk_work_hr",  3
+  brEmp.RetrieveRecords
+
+  Set emp_list = brEmp.GetRecordList(0)
+
+  For counter = 0 to emp_list.Count - 1
+    Set rec_emp = emp_list.ItemByIndex(counter)
+    Set user_list = brEmp.GetRelatedRecordList(rec_emp,"employee2user")
+    Set rec_user = user_list.ItemByIndex(0)
+
+                                       'Set the Work Group for the Employee
+    rec_emp.SetField "work_group", rec_workgroup.GetField("work_group")
+
+                                       'Update the User & Employee Records
+    bs.UpdateRecord  rec_user
+    bs.UpdateRecord  rec_emp
+
+                                       'Relate User to Online Priv Class  
+    If rec_workgroup.GetField("x_online_priv_en") = 1 Then
+      bs.RelateRecords rec_user, rec_online, "user_access2privclass"
+    End If
+
+                                       'Relate User to Offline Priv Class  
+    If rec_workgroup.GetField("x_offline_priv_en") = 1 Then
+      bs.RelateRecords rec_user, rec_offline, "offline2privclass"
+    End If
+
+                                       'Relate User to Resource Config
+    If rec_workgroup.GetField("x_resource_cfg_en") = 1 Then
+      bs.RelateRecords rec_user, rec_rc, "user2rc_config"
+    End If
+
+                                       'Relate Employee to Site
+    If rec_workgroup.GetField("x_site_name_en") = 1 Then
+      bs.RelateRecords rec_emp, rec_site, "supp_person_off2site"
+    End If
+
+                                       'Relate Employee to Supervisor
+    If rec_workgroup.GetField("x_supervisor_en") = 1 Then
+      bs.RelateRecords rec_emp, rec_supervisor, "emp_supvr2employee"
+    End If    
+
+                                       'Set the Employee's Local Password    
+    If rec_workgroup.GetField("x_password_en") = 1 Then 
+      rec_emp.SetField "local_password", rec_workgroup.GetField("x_password")
+    End If
+
+                                       'Set the Employee's Start Date
+                                       'Dont do this - as this only gets done when creating
+                                       'new employees, not when changing membership of a workgroup
+    'If rec_workgroup.GetField("x_emp_start_date_today") = 1 Then 
+    '  rec_emp.SetField "site_strt_date", App.CurrentDate
+    'End If
+
+                                       'Set the Employee's Workgroup Start Date
+    If rec_workgroup.GetField("x_wrkgrp_start_date_en") = 1 Then 
+      If rec_workgroup.GetField("x_wrkgroup_start_today") = 0 Then 
+        rec_emp.SetField "wg_strt_date", App.CurrentDate
+      Else
+        If IsDate(rec_workgroup.GetField("x_wrkgroup_start_date")) Then 
+          rec_emp.SetField "wg_strt_date", rec_workgroup.GetField("x_wrkgroup_start_date")
+        End If
+      End If
+    End If
+
+                                       'Set the Employee's Printer
+    If rec_workgroup.GetField("x_default_printer_en") = 1 Then 
+      rec_emp.SetField "printer", rec_workgroup.GetField("x_default_printer")
+    End If
+
+                                       'Set the Employee's Fax Number    
+    If rec_workgroup.GetField("x_fax_en") = 1 Then 
+      rec_emp.SetField "fax", rec_workgroup.GetField("x_fax")
+    End If
+
+                                       'Set the Employee's Mail Stop
+    If rec_workgroup.GetField("x_mail_stop_en") = 1 Then
+      rec_emp.SetField "mail_stop", rec_workgroup.GetField("x_mail_stop")
+    End If
+
+                                       'Set the Employee's Labor Rate
+    If rec_workgroup.GetField("x_labor_rate_en") = 1 Then
+      rec_emp.SetField "labor_rate", CSng(rec_workgroup.GetField("x_labor_rate"))
+    End If
+
+                                       'Set the Employee's Acting Supervisor Flag
+                                       'Set the Employee's Field Engineer Flag
+                                       'Set the Employee's Allow Proxy Flag
+    If rec_workgroup.GetField("x_act_supervisor_en") = 1 Then
+      rec_emp.SetField "acting_supvr", rec_workgroup.GetField("x_act_supervisor")
+    End If
+    If rec_workgroup.GetField("x_field_eng_en") = 1 Then
+      rec_emp.SetField "field_eng",    rec_workgroup.GetField("x_field_eng")
+    End If
+    If rec_workgroup.GetField("x_allow_proxy_en") = 1 Then
+      rec_emp.SetField "allow_proxy",  rec_workgroup.GetField("x_allow_proxy")
+    End If
+
+                                       'Set the Employee's Notification Preferences
+    If rec_workgroup.GetField("x_notification_en") = 1 Then
+        rec_emp.SetField "normal_biz_high", rec_workgroup.GetField("x_notify_high")
+        rec_emp.SetField "normal_biz_mid",  rec_workgroup.GetField("x_notify_med")
+        rec_emp.SetField "normal_biz_low",  rec_workgroup.GetField("x_notify_low")
+        rec_emp.SetField "after_biz_high", rec_workgroup.GetField("x_after_notify_high")
+        rec_emp.SetField "after_biz_mid",  rec_workgroup.GetField("x_after_notify_med")
+        rec_emp.SetField "after_biz_low",  rec_workgroup.GetField("x_after_notify_low")
+    End If
+
+                                       'If the queues have changed
+  If UpdateQueues Then
+                                       'Clear user's current queues
+                                       'Instead of thru a bulk save, we can do this by SQL
+                                       'This allows us to forgo querying all the queues for a user
+                                       'It also allows POMS to forgo querying for the MTM record
+    UserObjid = rec_user.GetField("objid")
+    CallString = "RemoveUserFromAllQueues UserObjid"
+    'debug.print "callString = " + CallString  
+  	ret_int = App.CallCB(CallString)
+	  On Error Resume Next
+	  If ret_int <> 0 Then
+		  App.MsgBox "An unexpected error occured. Return Code = " + CStr(ret_int)
+		  Exit Sub
+	  End If
+
+
+                                       'Assign User to Queues  
+    For q_counter = 0 to wkgrp_queue_list.Count - 1
+      Set rec_queue = wkgrp_queue_list.ItemByIndex(q_counter)
+      bs.RelateRecords rec_user, rec_queue, "user_assigned2queue"
+    Next q_counter
+  End If
+
+                                       'Biz Cal Stuff
+                                       'See if the employee has a biz_cal_hdr
+                                       'If no, create a new biz_cal_hdr and a new biz_cal
+                                       'If they have a biz_cal_hdr, see if they have a biz_cal
+                                       '  If no, create a biz_cal
+                                       '  If yes, delete all of the existing biz_cals, and create a new one
+    If rec_workgroup.GetField("x_biz_cal_en") = 1 Then
+        Set biz_cal_hdr_list = brEmp.GetRelatedRecordList(rec_emp,"empl_hrs2biz_cal_hdr")                                                 
+        If biz_cal_hdr_list.count = 0 Then
+          Set rec_biz_cal_hdr = New Record
+          Set rec_biz_cal = New Record
+          rec_biz_cal_hdr.RecordType = "biz_cal_hdr"     
+          rec_biz_cal.RecordType = "biz_cal"     
+        Else  
+          Set rec_biz_cal_hdr = biz_cal_hdr_list.ItemByIndex (0)   
+          Set biz_cal_list = brEmp.GetRelatedRecordList(rec_biz_cal_hdr,"biz_cal_hdr2biz_cal")          
+
+          If biz_cal_list.Count = 0 Then
+            Set rec_biz_cal = New Record           
+            rec_biz_cal.RecordType = "biz_cal"     
+          Else
+            Set rec_biz_cal = New Record           
+            rec_biz_cal.RecordType = "biz_cal"     
+
+            For list_counter3 = 0 to biz_cal_list.Count - 1
+              Set rec_biz_cal = biz_cal_list.ItemByIndex (list_counter3)             
+              bs.DeleteRecordByID "biz_cal", rec_biz_cal.GetField("objid")
+            Next list_counter3
+          End If 
+        End If
+                                       'If we found a wk_work_hr
+                                       'Set the effective date for the biz_cal
+                                       
+      If Not rec_wk_work_hr.IsNew Then        
+        If rec_workgroup.GetField("x_biz_cal_eff_today") = 0 Or _
+           rec_workgroup.GetField("x_bizcal_eff_date_en") = 0 Then
+            rec_biz_cal.SetField "effective_date", App.CurrentDate
+        Else 
+          If IsDate(rec_workgroup.GetField("x_bizcal_start_date")) Then
+            rec_biz_cal.SetField "effective_date", rec_workgroup.GetField("x_bizcal_start_date")
+          Else
+            rec_biz_cal.SetField "effective_date", App.CurrentDate
+          End If
+        End If
+                                       'If the biz_cal_hdr is new, add it to BulkSave
+                                       'Add the biz_cal to the BulkSave
+                                       'Relate Biz Cal to wk_work_hr
+                                       'Relate Biz Cal to Biz Cal Header
+                                       'Relate Biz Cal header to Employee
+         If rec_biz_cal_hdr.IsNew Then
+           bs.InsertRecord rec_biz_cal_hdr
+         End If
+         bs.InsertRecord rec_biz_cal  
+         bs.RelateRecords rec_wk_work_hr, rec_biz_cal, "wk_work_hr2biz_cal"
+         bs.RelateRecords rec_biz_cal, rec_biz_cal_hdr, "biz_cal2biz_cal_hdr"
+         bs.RelateRecords rec_biz_cal_hdr, rec_emp,     "biz_cal_hdr2empl_hrs"
+      End If
+    End If
+                                       'Loop to next employee in batch
+  Next counter
+                                       'We're done processing all employees
+                                       'in this batch, so save everything
+  'debug.print "About to Save"
+  bs.Save
+                                       'End of While Loop
+WEnd
+'debug.print "Done with While Loop. Exiting Sub..."
+
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Update the workgroup data for a single employee
+'
+' Copyright (C) 1999. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub UpdateEmployee(rec_workgroup as Record,emp_objid as Long)
+  Dim emp_objid_list as New List       'List of Employee Objids
+                                       'Make it a list of long integers
+                                       'Add the single employee to the list
+                                       'Call the List version of this sub
+  emp_objid_list.ItemType = "long"     
+  emp_objid_list.AppendItem emp_objid  
+  Call UpdateEmployeeList(rec_workgroup,emp_objid_list,True)  
+End Sub
+
